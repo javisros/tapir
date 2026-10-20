@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "tapir"
 version = "0.1.0"
 description = "TAPIR (Tracking Absent Pathways in Interstellar Reactions): propose, filter, rate, simulate and rank reactions missing from KIDA gas-phase networks"
+readme = "README.md"
 requires-python = ">=3.10"
 dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.6"]
 
