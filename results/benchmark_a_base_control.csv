@@ -1,0 +1,201 @@
+id,reaction,reaction_class,target,n_cand,rank_strict,rank_channel,family
+4538,N + C10N -> C3N + C7N,neutral-neutral,C7N,4,,,
+4860,H + C7H -> H2 + C7,neutral-neutral,C7,24,,,
+952,CN + NO -> N + OCN,neutral-neutral,OCN,7,,,
+2748,HCO + N+ -> CO + NH+,ion-neutral,CO,535,,,
+5636,OH + CO+ -> CO + OH+,ion-neutral,CO,535,,,
+5428,S + H2S+ -> H2S + S+,ion-neutral,H2S,290,100.0,100.0,OS
+4732,H2 + H3S+ -> H + H + H3S+,ion-neutral,H3S+,72,33.5,33.5,OS
+3111,C2H2 + CH+ -> H + l-C3H2+,ion-neutral,l-C3H2+,126,,,
+5321,H2CCO + C+ -> C + H2CCO+,ion-neutral,H2CCO+,64,,,
+3632,N + C9- -> CN + C8-,ion-neutral,C8-,1,,,
+2416,Si + l-C3H3+ -> H2 + SiC3H+,ion-neutral,SiC3H+,62,,,
+5582,NO + CH3+ -> CH3 + NO+,ion-neutral,CH3,264,,,
+1767,HS + HCO+ -> CO + H2S+,ion-neutral,H2S+,82,27.0,27.0,PT
+2935,SiH2 + H+ -> H2 + SiH+,ion-neutral,H2,340,,,
+1771,NS + HCO+ -> CO + HNS+,ion-neutral,HNS+,69,11.0,11.0,PT
+1403,H2CO + He+ -> H + He + HCO+,ion-neutral,HCO+,95,,,
+2679,C2H2 + N2H+ -> N2 + C2H3+,ion-neutral,C2H3+,68,16.0,16.0,PT
+5810,C5H2 + C2H2+ -> C2H2 + C5H2+,ion-neutral,C5H2+,62,,,
+1830,O + C4H2+ -> CO + l-C3H2+,ion-neutral,l-C3H2+,126,,,
+3167,H2CO + NH+ -> N + H2COH+,ion-neutral,H2COH+,71,17.5,17.5,PT
+1436,C2 + SiO+ -> CO + SiC+,ion-neutral,CO,535,,,
+1225,CH3NH2 + He+ -> He + CH3 + NH2+,ion-neutral,CH3,264,,,
+3331,NH3 + HCNH+ -> HCN + NH4+,ion-neutral,NH4+,73,16.5,16.5,PT
+5284,C3 + HCNH+ -> C3H+ + HCN,ion-neutral,C3H+,63,7.5,7.5,PT
+7413,N+ + CS2 -> CS2+ + N,ion-neutral,CS2+,11,4.0,4.0,OS
+1451,CN + C2H+ -> H + C3N+,ion-neutral,C3N+,0,,,
+3525,O + C4H- -> CO + c-C3H + e-,ion-neutral,c-C3H,13,,,
+4973,H+ + HCNO -> NO + CH2+,ion-neutral,CH2+,78,17.0,17.0,OS
+3217,C6H + C2H2+ -> H + C8H2+,ion-neutral,C8H2+,62,,,
+2302,C4H + H3+ -> H2 + C4H2+,ion-neutral,C4H2+,63,4.0,4.0,PT
+6560,C + C8- -> C9 + e-,ion-neutral,C9,25,,,
+5324,NH + CN+ -> CN + NH+,ion-neutral,CN,474,,,
+5043,C+ + CH3SH -> CH3+ + HCS,ion-neutral,CH3+,79,14.5,14.5,OS
+5718,CCH + H2O+ -> H2O + C2H+,ion-neutral,C2H+,71,,,
+2760,CH3OH + N+ -> H + CH3 + NO+,ion-neutral,CH3,264,,,
+1131,CH4 + He+ -> He + CH3 + H+,ion-neutral,CH3,264,,,
+6528,O + O- -> O2 + e-,ion-neutral,O2,272,4.0,4.0,OS
+736,O + C6H2+ -> C5H + HCO+,ion-neutral,C5H,29,,,
+1391,C3O + He+ -> He + O + C3+,ion-neutral,C3+,4,,,
+4682,SO + CH+ -> CS + OH+,ion-neutral,CS,710,,,
+630,O2 + C+ -> CO + O+,ion-neutral,CO,535,49.0,49.0,OS
+5491,NO2 + O+ -> O + NO2+,ion-neutral,NO2+,0,,,
+3356,H2S + NH2+ -> NH3 + HS+,ion-neutral,NH3,224,,,
+2625,C + HNC+ -> CN + CH+,ion-neutral,CH+,72,32.5,32.5,PT
+3291,C2H3 + CH3+ -> H + H2 + c-C3H3+,ion-neutral,c-C3H3+,186,,,
+1136,HCNCC + He+ -> He + CH + C2N+,ion-neutral,C2N+,0,,,
+2192,HNC + H2O+ -> OH + HCNH+,ion-neutral,HCNH+,133,12.5,12.5,OS+PT
+7514,C+ + C8H4 -> C9H3+ + H,ion-neutral,C9H3+,62,,,
+2443,C5H + c-C3H3+ -> H2 + C8H2+,ion-neutral,C8H2+,62,,,
+2581,C6 + HCO+ -> CO + C6H+,ion-neutral,C6H+,62,3.0,3.0,PT
+1794,HNC + HCO+ -> CO + HCNH+,ion-neutral,HCNH+,133,11.0,11.0,PT
+6384,H+ + HCNS -> HCNS+ + H,ion-neutral,HCNS+,1,,,
+5086,CCH + CH3SH -> C2H2 + CH3S,neutral-neutral,CH3S,3,,,
+1374,C2H2 + He+ -> He + CH + CH+,ion-neutral,CH,237,,,
+1286,O2 + He+ -> He + O + O+,ion-neutral,He,294,14.0,14.0,OS
+3248,C + CH2Si+ -> C2H2 + Si+,ion-neutral,C2H2,241,,,
+5609,SiS + C+ -> C + SiS+,ion-neutral,SiS+,8,,,
+5456,PN + H+ -> H + PN+,ion-neutral,PN+,0,,,
+1520,C2H2 + CNC+ -> C3 + HCNH+,ion-neutral,HCNH+,133,,,
+3096,CH2 + CH+ -> H2 + C2H+,ion-neutral,C2H+,71,,,
+6549,H + C5H- -> C5H2 + e-,ion-neutral,C5H2,220,,,
+3011,OH + S+ -> H + SO+,ion-neutral,SO+,0,,,
+1649,C6H + l-C3H2+ -> H2 + C9H+,ion-neutral,C9H+,63,,,
+6518,NH + H- -> NH2 + e-,ion-neutral,NH2,227,,,
+3352,CH2 + NH2+ -> NH + CH3+,ion-neutral,CH3+,79,38.5,38.5,PT
+6362,CN + H+ -> H + CN+,ion-neutral,CN+,0,,,
+2291,HCCSi + H3+ -> H2 + SiC2H2+,ion-neutral,SiC2H2+,62,3.0,3.0,PT
+6516,CN + H- -> HCN + e-,ion-neutral,HCN,262,,,
+2983,NH2CHO + H+ -> CO + NH4+,ion-neutral,NH4+,73,,,
+5062,C + CH3SH -> CH3 + HCS,neutral-neutral,CH3,264,31.5,31.5,OS
+1377,c-C3H + He+ -> C + H + He + C2+,ion-neutral,C2+,8,,,
+4536,N + C8N -> C3N + C5N,neutral-neutral,C5N,4,,,
+3224,H2 + C3H+ -> H + c-C3H2+,ion-neutral,c-C3H2+,126,,,
+2610,C9H + HCO+ -> CO + C9H2+,ion-neutral,C9H2+,62,3.0,3.0,PT
+3005,CH3OCH3 + H+ -> H2 + CH3CHOH+,ion-neutral,CH3CHOH+,64,,,
+2133,N + C7 -> CN + C6,neutral-neutral,C6,25,,,
+2178,C2 + H2O+ -> OH + C2H+,ion-neutral,C2H+,71,28.0,28.0,PT
+2156,O + CN -> N + CO,neutral-neutral,CO,535,16.0,16.0,OS
+891,O + C8 -> CO + C7,neutral-neutral,C7,24,,,
+2757,CH4 + N+ -> NH + CH3+,ion-neutral,CH3+,79,,,
+5320,l-SiC3 + C+ -> C + l-SiC3+,ion-neutral,l-SiC3+,0,,,
+1186,C6 + He+ -> C + He + C2 + C3+,ion-neutral,C3+,4,,,
+1362,OCS + He+ -> He + O + CS+,ion-neutral,CS+,30,,,
+1693,C5H + H3+ -> H2 + C5H2+,ion-neutral,C5H2+,62,2.0,2.0,PT
+1852,C5H + C4H2+ -> H + C9H2+,ion-neutral,C9H2+,62,,,
+937,CH + C7 -> H + C8,neutral-neutral,C8,25,,,
+1284,NS + He+ -> He + S + N+,ion-neutral,He,294,34.5,34.5,OS
+6364,HS + S+ -> S + HS+,ion-neutral,HS+,78,29.0,29.0,OS
+4592,O + C8N -> CO + C7N,neutral-neutral,C7N,4,,,
+5745,SiH3 + H+ -> H + SiH3+,ion-neutral,SiH3+,62,,,
+2884,CH4 + HOCO+ -> CO2 + CH5+,ion-neutral,CH5+,63,2.0,2.0,OS+PT
+5722,NH + N+ -> N + NH+,ion-neutral,NH+,67,,,
+2556,c-C3H2 + HCO+ -> l-C3H3+ + CO,ion-neutral,l-C3H3+,186,8.0,8.0,PT
+2389,C5H + C2H4+ -> CH3 + C6H2+,ion-neutral,C6H2+,62,,,
+4850,H + C2H4 -> H2 + C2H3,neutral-neutral,C2H3,217,,,
+2881,H2O + HOCO+ -> CO2 + H3O+,ion-neutral,H3O+,65,13.0,13.0,OS+PT
+5108,O + HCNS -> HCO + NS,neutral-neutral,HCO,240,,,
+5483,HCN + N+ -> N + HCN+,ion-neutral,HCN+,67,,,
+3626,N + C7- -> CN + C6-,ion-neutral,C6-,1,,,
+1301,SO + He+ -> He + O + S+,ion-neutral,He,294,,,
+3283,NH2 + CH3+ -> H + CH2NH2+,ion-neutral,CH2NH2+,62,,,
+1571,C6H + C2H3+ -> H + C8H3+,ion-neutral,C8H3+,62,,,
+5432,O2 + CH4+ -> CH4 + O2+,ion-neutral,CH4,227,,,
+3373,CH + HO2+ -> O2 + CH2+,ion-neutral,CH2+,78,27.5,27.5,PT
+2186,H2O + H2O+ -> OH + H3O+,ion-neutral,H3O+,65,5.5,5.5,OS+PT
+2617,CH3C7N + HCO+ -> CO + C8H4N+,ion-neutral,C8H4N+,62,3.0,3.0,PT
+753,H2 + C7N+ -> H + HC7N+,ion-neutral,HC7N+,62,,,
+2847,HCCSi + H3O+ -> H2O + SiC2H2+,ion-neutral,SiC2H2+,62,5.0,5.0,PT
+1586,N + c-C3H2+ -> CN + C2H2+,ion-neutral,C2H2+,66,,,
+2433,C4H + l-C3H3+ -> H2 + C7H2+,ion-neutral,C7H2+,62,,,
+4430,CN + CH4 -> HCN + CH3,neutral-neutral,CH3,264,,,
+2023,H + C2H3 -> H2 + C2H2,neutral-neutral,C2H2,241,,,
+3351,CCH + NH2+ -> NH + C2H2+,ion-neutral,C2H2+,66,25.5,25.5,PT
+4906,CH + NH -> H + HNC,neutral-neutral,HNC,225,,,
+1130,CH2NH + He+ -> H + He + HCNH+,ion-neutral,HCNH+,133,,,
+1825,C + C4H2+ -> H2 + C5+,ion-neutral,C5+,0,,,
+2419,CCH + l-C3H3+ -> H2 + C5H2+,ion-neutral,C5H2+,62,,,
+991,OH + H2CO -> H2O + HCO,neutral-neutral,H2O,273,,,
+5824,SiCH3 + H+ -> H + SiCH3+,ion-neutral,SiCH3+,62,,,
+1227,CH3NH2 + He+ -> H + He + H2 + HCNH+,ion-neutral,HCNH+,133,,,
+839,O + NO2 -> NO + O2,neutral-neutral,NO,222,,,
+1646,C5H2 + l-C3H2+ -> H + C8H3+,ion-neutral,C8H3+,62,,,
+2171,O + SiN -> N + SiO,neutral-neutral,SiO,3,,,
+1607,C2H3 + l-C3H2+ -> H2 + C5H3+,ion-neutral,C5H3+,62,,,
+4591,O + C6N -> CO + C5N,neutral-neutral,C5N,4,,,
+1376,c-C3H + He+ -> H + He + C3+,ion-neutral,C3+,4,,,
+4415,CCH + CH2CCH2 -> H + CH3C4H,neutral-neutral,CH3C4H,3,2.5,2.5,AE
+1577,C7H + C2H3+ -> H + C9H3+,ion-neutral,C9H3+,62,,,
+919,CH + NO -> H + CNO,neutral-neutral,CNO,7,,,
+798,N + C9H2+ -> H + C9HN+,ion-neutral,C9HN+,62,,,
+2221,CO + H3+ -> H2 + HOC+,ion-neutral,HOC+,62,1.0,1.0,PT
+2142,N + C8 -> C3 + C5N,neutral-neutral,C5N,4,,,
+1641,CH3CCH + l-C3H2+ -> CH3 + C5H3+,ion-neutral,C5H3+,62,,,
+5342,Na + CS+ -> CS + Na+,ion-neutral,CS,710,,,
+2352,C + C2H4+ -> H + c-C3H3+,ion-neutral,c-C3H3+,186,,,
+1121,C5 + He+ -> He + C3 + C2+,ion-neutral,C3,219,,,
+807,H + SO2+ -> OH + SO+,ion-neutral,OH,279,,,
+6394,He+ + HCNS -> HCNS+ + He,ion-neutral,HCNS+,1,1.0,1.0,OS
+4902,C + HNC -> C + HCN,neutral-neutral,HCN,262,,,
+1458,HCN + C2H+ -> CN + C2H2+,ion-neutral,C2H2+,66,,,
+2756,CH4 + N+ -> H + N + CH3+,ion-neutral,CH3+,79,,,
+1194,NH2CHO + He+ -> He + CO + NH3+,ion-neutral,NH3+,83,,,
+2436,C2H4 + l-C3H3+ -> H2 + C5H5+,ion-neutral,C5H5+,125,,,
+1210,He+ + C4H3 -> C + He + c-C3H3+,ion-neutral,c-C3H3+,186,,,
+3093,CCH + CH+ -> H2 + C3+,ion-neutral,C3+,4,,,
+3496,C + C2H3 -> H + l-C3H2,neutral-neutral,l-C3H2,5,,,
+4989,H3+ + CNO -> H2 + HCNO+,ion-neutral,HCNO+,127,4.0,4.0,PT
+2104,N + H2CN -> N2 + CH2,neutral-neutral,CH2,238,,,
+5573,NO + O2+ -> O2 + NO+,ion-neutral,NO+,12,11.0,11.0,OS
+5243,H+ + CH2CCH2 -> H2 + l-C3H3+,ion-neutral,l-C3H3+,186,,,
+943,CH + C8 -> H + C9,neutral-neutral,C9,25,,,
+1453,CH2 + C2H+ -> C2 + CH3+,ion-neutral,CH3+,79,44.5,44.5,PT
+2260,HCSi + H3+ -> H2 + CH2Si+,ion-neutral,CH2Si+,62,3.0,3.0,PT
+2758,CH4 + N+ -> H + H + HCNH+,ion-neutral,HCNH+,133,,,
+3636,N + C10- -> C7 + C3N-,ion-neutral,C7,24,,,
+5269,N + C3H7 -> C2H5 + H2CN,neutral-neutral,C2H5,4,,,
+2014,C + CH2 -> CH + CH,neutral-neutral,CH,237,,,
+2293,SiCH2 + H3+ -> H2 + SiCH3+,ion-neutral,SiCH3+,62,2.0,2.0,PT
+1096,c-C3H2 + He+ -> H + He + CH + C2+,ion-neutral,C2+,8,,,
+1923,CCH + C4H3+ -> H + C6H3+,ion-neutral,C6H3+,62,,,
+1953,C4H + C5H2+ -> H + C9H2+,ion-neutral,C9H2+,62,,,
+3431,NH2 + C2H2+ -> H + CH3CN+,ion-neutral,CH3CN+,63,,,
+5785,H2CO + O+ -> O + H2CO+,ion-neutral,H2CO+,66,,,
+2680,H2CO + N2H+ -> N2 + H2COH+,ion-neutral,H2COH+,71,14.0,14.0,PT
+1587,N + c-C3H2+ -> C2 + HCNH+,ion-neutral,HCNH+,133,,,
+5040,H + HSO+ -> SO+ + H2,ion-neutral,H2,340,,,
+2059,H2 + OH -> H + H2O,neutral-neutral,H2O,273,69.0,69.0,OS
+729,C4H2 + C4H4+ -> C2H2 + C6H4+,ion-neutral,C6H4+,62,,,
+5280,OH + C3 -> C3O + H,neutral-neutral,C3O,28,,,
+4772,CO + O2 -> O + CO2,neutral-neutral,CO2,241,,,
+7528,He+ + C9H4 -> C9H3+ + H + He,ion-neutral,C9H3+,62,,,
+5614,H2S + C+ -> C + H2S+,ion-neutral,H2S+,82,,,
+3178,HCO + O2+ -> CO + HO2+,ion-neutral,HO2+,67,,,
+3624,N + C6- -> C3 + C3N-,ion-neutral,C3N-,0,,,
+4570,C+ + C8N -> C7 + C2N+,ion-neutral,C7,24,,,
+2682,CH4 + N2H+ -> N2 + CH5+,ion-neutral,CH5+,63,11.0,11.0,PT
+1883,NH3 + CH5+ -> CH4 + NH4+,ion-neutral,CH4,227,24.0,24.0,PT
+7420,HCS2+ + CH4 -> CH5+ + CS2,ion-neutral,CH5+,63,6.0,6.0,OS+PT
+722,C + C3H5+ -> H2 + C4H3+,ion-neutral,C4H3+,62,,,
+5168,HCNS + H3+ -> HCNSH+ + H2,ion-neutral,HCNSH+,249,2.0,2.0,OS+PT
+1274,H2 + He+ -> H + He + H+,ion-neutral,H+,7,,,
+3378,NH + HO2+ -> O2 + NH2+,ion-neutral,NH2+,71,21.5,21.5,PT
+995,OH + C2H3 -> H2CCO + H2,neutral-neutral,H2CCO,3,,,
+6395,S + C2H2+ -> S+ + C2H2,ion-neutral,C2H2,241,,,
+2927,CCH + C2H3+ -> H + C4H3+,ion-neutral,C4H3+,62,,,
+1731,C10 + H3+ -> H2 + C10H+,ion-neutral,C10H+,62,2.0,2.0,PT
+2594,C6H2 + HCO+ -> CO + C6H3+,ion-neutral,C6H3+,62,4.0,4.0,PT
+5395,Fe + SiO+ -> SiO + Fe+,ion-neutral,SiO,3,,,
+3512,C + C5N -> C3 + C3N,neutral-neutral,C3N,25,,,
+2985,NH2CHO + H+ -> H2O + H2NC+,ion-neutral,H2NC+,126,,,
+3641,O + C8H2 -> CO + C7H2,neutral-neutral,C7H2,218,,,
+1711,C6H2 + H3+ -> H2 + C6H3+,ion-neutral,C6H3+,62,3.0,3.0,PT
+3168,NH3 + NH+ -> N + NH4+,ion-neutral,NH4+,73,23.5,23.5,PT
+4565,C4N + C+ -> C3 + CNC+,ion-neutral,C3,219,,,
+4809,O + N2O -> N2 + O2,neutral-neutral,N2,237,,,
+1288,PH + He+ -> H + He + P+,ion-neutral,He,294,,,
+633,SiC + C+ -> C2 + Si+,ion-neutral,C2,225,,,
+2202,H2O + H2S+ -> HS + H3O+,ion-neutral,H3O+,65,27.0,27.0,PT
+3366,H + NO2+ -> OH + NO+,ion-neutral,NO+,12,,,
+1938,C5H2 + C4H3+ -> H + C9H4+,ion-neutral,C9H4+,62,,,

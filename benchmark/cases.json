@@ -1,0 +1,360 @@
+{
+ "configuration": {
+  "network": "networks/kida.uva.2024/gas_reactions_kida.uva.2024.in",
+  "C_O": 1.2,
+  "S": 8e-08,
+  "elements": {
+   "H2": 0.5,
+   "He": 0.09,
+   "N": 6.2e-05,
+   "O": 0.00014166666666666668,
+   "C+": 0.00017,
+   "S+": 8e-08,
+   "Si+": 8e-09,
+   "Fe+": 3e-09,
+   "Na+": 2e-09,
+   "Mg+": 7e-09,
+   "P+": 2e-10,
+   "Cl+": 1e-09,
+   "F": 6.68e-09
+  },
+  "physics": {
+   "T": 10.0,
+   "nH": 20000.0,
+   "zeta": 1e-17,
+   "Av": 15.0
+  },
+  "t_ref_yr": 6000000.0,
+  "X": "2 * x_i = n_i / n(H2) at t_ref (as in tapir.knockout.X)",
+  "objective": "X_base of the original model, not the TMC-1 observation",
+  "knockout": "only the hidden row (id, reactants, products) is removed from load_rows",
+  "check_tolerance": 0.01
+ },
+ "cases": [
+  {
+   "species": "CH2CHCN",
+   "hidden_reaction": {
+    "reaction": "CN + C2H4 -> H + CH2CHCN",
+    "kida_id": 961,
+    "reac": [
+     "CN",
+     "C2H4"
+    ],
+    "prod": [
+     "H",
+     "CH2CHCN"
+    ],
+    "reaction_class": "neutral-neutral",
+    "A": 2.67e-10,
+    "B": -0.69,
+    "C": 31.0,
+    "itype": 4,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "C2H4",
+     "CN"
+    ],
+    [
+     "CH2CHCN",
+     "H"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [
+     {
+      "id": 907,
+      "reaction": "CN + C2H4 -> H + CH2CHCN"
+     }
+    ],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     961
+    ]
+   },
+   "X_base": 1.9029328177936834e-09,
+   "X_ko": 5.45093738673334e-13,
+   "drop": 3491.019402323535,
+   "check": {
+    "X_model_csv": 1.9e-09,
+    "drop_csv": 3490.0,
+    "rel_err_X_base": 0.0015435883124648164,
+    "rel_err_drop": 0.0002920923563136668,
+    "ok": true
+   }
+  },
+  {
+   "species": "CH3CN",
+   "hidden_reaction": {
+    "reaction": "CH3CNH+ + e- -> H + CH3CN",
+    "kida_id": 6719,
+    "reac": [
+     "CH3CNH+",
+     "e-"
+    ],
+    "prod": [
+     "H",
+     "CH3CN"
+    ],
+    "reaction_class": "dissociative recombination",
+    "A": 1.3e-07,
+    "B": -0.5,
+    "C": 0.0,
+    "itype": 8,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "CH3CNH+",
+     "e-"
+    ],
+    [
+     "CH3CN",
+     "H"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [
+     {
+      "id": 6443,
+      "reaction": "CH3CNH+ + e- -> H + CH3CN"
+     }
+    ],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     6719
+    ]
+   },
+   "X_base": 2.4537042436233036e-09,
+   "X_ko": 7.760737149518777e-13,
+   "drop": 3161.689664718836,
+   "check": {
+    "X_model_csv": 2.45e-09,
+    "drop_csv": 3160.0,
+    "rel_err_X_base": 0.0015119361727768954,
+    "rel_err_drop": 0.0005347040249481516,
+    "ok": true
+   }
+  },
+  {
+   "species": "HNCCC",
+   "hidden_reaction": {
+    "reaction": "HC3NH+ + e- -> H + HNCCC",
+    "kida_id": 6635,
+    "reac": [
+     "HC3NH+",
+     "e-"
+    ],
+    "prod": [
+     "H",
+     "HNCCC"
+    ],
+    "reaction_class": "dissociative recombination",
+    "A": 1.8e-07,
+    "B": -0.58,
+    "C": 0.0,
+    "itype": 8,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "HC3NH+",
+     "e-"
+    ],
+    [
+     "H",
+     "HNCCC"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [
+     {
+      "id": 6369,
+      "reaction": "HC3NH+ + e- -> H + HNCCC"
+     }
+    ],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     6635
+    ]
+   },
+   "X_base": 1.5122505805806298e-09,
+   "X_ko": 4.7764224119560845e-12,
+   "drop": 316.60737894438427,
+   "check": {
+    "X_model_csv": 1.51e-09,
+    "drop_csv": 317.0,
+    "rel_err_X_base": 0.0014904507156490165,
+    "rel_err_drop": 0.0012385522259171777,
+    "ok": true
+   }
+  },
+  {
+   "species": "HCCCHO",
+   "hidden_reaction": {
+    "reaction": "O + CH2CCH -> HCCCHO + H",
+    "kida_id": 4509,
+    "reac": [
+     "O",
+     "CH2CCH"
+    ],
+    "prod": [
+     "HCCCHO",
+     "H"
+    ],
+    "reaction_class": "neutral-neutral",
+    "A": 1.6e-10,
+    "B": 0.0,
+    "C": 0.0,
+    "itype": 4,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "CH2CCH",
+     "O"
+    ],
+    [
+     "H",
+     "HCCCHO"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     4509
+    ]
+   },
+   "X_base": 2.1202709686784116e-10,
+   "X_ko": 9.824448572382972e-13,
+   "drop": 215.81577358332373,
+   "check": {
+    "X_model_csv": 2.12e-10,
+    "drop_csv": 216.0,
+    "rel_err_X_base": 0.00012781541434514487,
+    "rel_err_drop": 0.0008529000772049544,
+    "ok": true
+   }
+  },
+  {
+   "species": "H2CS",
+   "hidden_reaction": {
+    "reaction": "S + CH3 -> H + H2CS",
+    "kida_id": 906,
+    "reac": [
+     "S",
+     "CH3"
+    ],
+    "prod": [
+     "H",
+     "H2CS"
+    ],
+    "reaction_class": "neutral-neutral",
+    "A": 1.4e-10,
+    "B": 0.0,
+    "C": 0.0,
+    "itype": 4,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "CH3",
+     "S"
+    ],
+    [
+     "H",
+     "H2CS"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [
+     {
+      "id": 848,
+      "reaction": "S + CH3 -> H + H2CS"
+     }
+    ],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     906
+    ]
+   },
+   "X_base": 2.3510806078588824e-09,
+   "X_ko": 1.939430135914781e-11,
+   "drop": 121.22533131361992,
+   "check": {
+    "X_model_csv": 2.35e-09,
+    "drop_csv": 121.0,
+    "rel_err_X_base": 0.00045983313143938,
+    "rel_err_drop": 0.0018622422613217005,
+    "ok": true
+   }
+  },
+  {
+   "species": "N2H+",
+   "hidden_reaction": {
+    "reaction": "N2 + H3+ -> H2 + N2H+",
+    "kida_id": 2229,
+    "reac": [
+     "N2",
+     "H3+"
+    ],
+    "prod": [
+     "H2",
+     "N2H+"
+    ],
+    "reaction_class": "ion-neutral",
+    "A": 1.7e-09,
+    "B": 0.0,
+    "C": 0.0,
+    "itype": 4,
+    "formula": 3
+   },
+   "canonical_key": [
+    [
+     "H3+",
+     "N2"
+    ],
+    [
+     "H2",
+     "N2H+"
+    ]
+   ],
+   "equivalents_2014": {
+    "strict": [
+     {
+      "id": 2188,
+      "reaction": "N2 + H3+ -> H2 + N2H+"
+     }
+    ],
+    "channel": []
+   },
+   "equivalents_2024_file": {
+    "strict": [
+     2229
+    ]
+   },
+   "X_base": 2.3934930858594625e-10,
+   "X_ko": 6.76339277779589e-12,
+   "drop": 35.38894109059083,
+   "check": {
+    "X_model_csv": 2.39e-10,
+    "drop_csv": 35.4,
+    "rel_err_X_base": 0.0014615422006118983,
+    "rel_err_drop": 0.00031239857088039,
+    "ok": true
+   }
+  }
+ ]
+}
