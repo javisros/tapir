@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tapir"
+version = "0.1.0"
+description = "TAPIR (Tracking Absent Pathways in Interstellar Reactions): propose, filter, rate, simulate and rank reactions missing from KIDA gas-phase networks"
+requires-python = ">=3.10"
+dependencies = ["numpy>=1.24", "scipy>=1.10", "matplotlib>=3.6"]
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+
+[tool.setuptools]
+packages = ["tapir"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
