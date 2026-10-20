@@ -1,0 +1,51 @@
+species,X_model,X_obs,model_over_obs,obs_source,hidden_reaction,reaction_class,kida_id,k_kida_10K,formation_fraction,drop_tref,drop_1e5yr,drop_peak,collateral_3x,capture_recovery
+CO,2.83e-04,,,detected; X not verified,HCO+ + e- -> H + CO,dissociative recombination,6835,2.93e-06,0.40,1,0.985,1,0,
+CN,5.81e-07,,,detected; X not verified,HCNH+ + e- -> H + H + CN,dissociative recombination,7091,8.26e-07,0.31,1.22,1.05,1.14,0,
+HCN,3.79e-07,,,detected; X not verified,HCNH+ + e- -> H + HCN,dissociative recombination,7092,8.78e-07,0.32,1.44,1.09,1.14,0,
+HNC,2.08e-07,,,detected; X not verified,HCNH+ + e- -> H + HNC,dissociative recombination,7093,8.78e-07,0.49,1.88,1.85,1.35,0,
+C4H2,1.85e-07,2.2e-09,85,Gratier+2016,H + C4H- -> C4H2 + e-,ion-neutral,6545,8.30e-10,0.45,2.61,1.81,1.82,1,
+C4H,7.37e-08,,,detected; X not verified,H + C4- -> C4H + e-,ion-neutral,6591,6.20e-10,0.18,1.25,1.13,1.18,0,
+HC3N,6.19e-08,2.3e-08,2.6,Gratier+2016,CN + C2H2 -> H + HC3N,neutral-neutral,959,2.39e-10,0.34,1.98,1,1.58,0,
+c-C3H2,5.12e-08,1.9e-09,27,Gratier+2016,c-C3H3+ + e- -> H + c-C3H2,dissociative recombination,6639,2.19e-06,0.64,2.69,6.14,4.14,0,
+HC5N,4.49e-08,5.9e-09,7.6,Gratier+2016,CN + C4H2 -> H + HC5N,neutral-neutral,963,2.39e-10,0.59,14.4,1,12.2,0,0.65
+CCH,3.62e-08,,,detected; X not verified,HC3NH+ + e- -> CCH + HCN,dissociative recombination,6636,2.59e-06,0.16,1.09,1.01,1.08,0,
+CS,3.45e-08,,,detected; X not verified,S + C2 -> C + CS,neutral-neutral,899,2.00e-10,0.20,1.3,1.52,1.2,0,
+C3N,3.44e-08,3.5e-09,9.7,Gratier+2016,C2 + HCN -> H + C3N,neutral-neutral,4913,2.00e-10,0.38,1.47,1.35,1.53,0,
+HC9N,3.15e-08,1.0e-09,30,Gratier+2016,CN + C8H2 -> H + HC9N,neutral-neutral,965,2.39e-10,0.63,49.9,1,11.6,0,0.52
+HC7N,3.09e-08,4.6e-09,6.8,Gratier+2016,CN + C6H2 -> H + HC7N,neutral-neutral,964,2.39e-10,0.59,17.6,1,9.14,0,0.62
+C5H,2.50e-08,1.9e-10,1.3e+02,Gratier+2016,H + C5- -> C5H + e-,ion-neutral,6547,6.20e-10,0.27,1.69,2.04,1.65,0,
+H2CCN,2.15e-08,3.8e-09,5.7,Gratier+2016,CN + CH3 -> H + H2CCN,neutral-neutral,4762,1.00e-10,0.54,3.92,1,3.62,0,
+C6H,1.70e-08,5.5e-10,31,Gratier+2016,H + C6- -> C6H + e-,ion-neutral,6551,6.10e-10,0.18,1.57,2.39,1.38,0,
+HCO,1.47e-08,1.1e-10,1.3e+02,Cernicharo+2021,HCO+ + C6H- -> HCO + C6H,ion-ion,5910,2.06e-07,0.17,1.22,1,1.12,0,
+NH3,1.44e-08,5.0e-08,0.29,Gratier+2016,NH4+ + e- -> H + NH3,dissociative recombination,7220,5.75e-06,0.90,3.49,127,2.04,0,
+HCO+,1.20e-08,,,detected; X not verified,CO + H3+ -> H2 + HCO+,ion-neutral,2220,2.47e-09,0.84,1.98,3.6,1.98,1,
+c-C3H,1.09e-08,3.0e-09,3.6,Gratier+2016,C + C10H2 -> C2 + C3 + c-C3H + c-C3H,neutral-neutral,4366,4.50e-10,0.20,1.2,1,1.3,0,
+NO,8.88e-09,,,detected; X not verified,H2NO+ + e- -> H2 + NO,dissociative recombination,7104,8.22e-07,0.36,1.07,1,1.07,0,
+H2CO,7.66e-09,,,detected; X not verified,O + CH3 -> H + H2CO,neutral-neutral,864,1.40e-10,0.53,4.56,2.93,2.57,0,
+l-C3H,4.96e-09,5.6e-10,8.8,Gratier+2016,C + C10H2 -> C2 + C3 + l-C3H + l-C3H,neutral-neutral,4365,4.50e-10,0.42,1.72,1,2.09,0,
+HNCO,4.61e-09,1.1e-09,4.3,Gratier+2016,HNCOH+ + e- -> H + HNCO,dissociative recombination,7275,5.48e-07,0.58,3.4,2.41,3,0,
+HCNH+,4.45e-09,,,detected; X not verified,HCN + HCO+ -> CO + HCNH+,ion-neutral,1790,1.77e-08,0.45,1.44,1.36,1.69,0,
+CCS,4.22e-09,1.0e-08,0.41,Gratier+2016,S + CCH -> H + CCS,neutral-neutral,1959,1.00e-10,0.25,1.8,1.26,1.35,0,
+C6H-,3.02e-09,,,detected; X not verified,C6H + e- -> C6H- + Photon,radiative electron attachment,7228,3.29e-07,1.00,920,11,521,1,
+CH3CN,2.45e-09,4.1e-10,6,Gratier+2016,CH3CNH+ + e- -> H + CH3CN,dissociative recombination,6719,7.12e-07,1.00,3.16e+03,2.11e+05,5.2e+03,0,0.79
+H2CS,2.35e-09,4.2e-09,0.56,Gratier+2016,S + CH3 -> H + H2CS,neutral-neutral,906,1.40e-10,0.77,121,130,264,0,0.74
+OH,2.31e-09,,,detected; X not verified,H3O+ + e- -> H + H + OH,dissociative recombination,7112,1.42e-06,0.34,1.19,2.26,0.878,0,
+C3S,2.25e-09,1.4e-09,1.6,Gratier+2016,CS + CCH -> H + C3S,neutral-neutral,1960,2.00e-10,0.22,1.59,1.4,1.55,0,
+OCS,2.04e-09,,,detected; X not verified,S + HCO -> H + OCS,neutral-neutral,4380,8.00e-11,0.56,6.23,1.05,4.38,0,
+CH2CHCN,1.90e-09,6.5e-10,2.9,Gratier+2016,CN + C2H4 -> H + CH2CHCN,neutral-neutral,961,1.26e-10,0.64,3.49e+03,14.8,1.65e+03,0,0.85
+C4H-,1.85e-09,,,detected; X not verified,C4H + e- -> C4H- + Photon,radiative electron attachment,7224,6.02e-08,1.00,650,70.8,474,0,
+CH3CCH,1.61e-09,1.1e-08,0.14,Gratier+2016,H + CH2CCH -> CH3CCH + Photon,radiative association,6495,1.64e-11,0.81,6.29,11.8,7.57,0,
+HNCCC,1.51e-09,4.8e-11,32,Gratier+2016,HC3NH+ + e- -> H + HNCCC,dissociative recombination,6635,1.29e-06,1.00,317,37.3,315,0,0.44
+H2CCO,1.30e-09,4.8e-10,2.7,Gratier+2016,CH3CO+ + e- -> H + H2CCO,dissociative recombination,6622,5.48e-07,0.27,1.28,1.28,1.11,0,
+l-C3H2,1.09e-09,5.9e-11,19,Gratier+2016,C5H3+ + e- -> CCH + l-C3H2,dissociative recombination,6912,8.22e-07,0.69,3.48,1,1.13,0,
+HCCNC,9.65e-10,8.5e-10,1.1,Gratier+2016,HC3NH+ + e- -> H + HCCNC,dissociative recombination,6633,8.63e-08,0.69,4.24,1.42,2.31,0,
+CH2CCH,9.33e-10,8.7e-09,0.11,Agundez+2021,C + C2H4 -> H + CH2CCH,neutral-neutral,3491,3.93e-10,0.60,2.98,4.75,1.6,0,
+C3O,8.52e-10,8.3e-11,10,Gratier+2016,OH + C3 -> C3O + H,neutral-neutral,5280,1.00e-10,0.64,4.53,1.76,6.76,1,
+NS,6.38e-10,,,detected; X not verified,HNS+ + e- -> H + NS,dissociative recombination,6842,1.64e-06,0.62,1.21,1,2.56,26,
+CH3C4H,4.76e-10,1.5e-09,0.32,Gratier+2016,C5H5+ + e- -> H + CH3C4H,dissociative recombination,6980,1.39e-06,0.52,2.04,2.61e+04,2.19,0,
+C5O,3.88e-10,1.5e-12,2.6e+02,Cernicharo+2021,O + C5H -> H + C5O,neutral-neutral,882,1.00e-11,0.58,1.26e+22,1.81e+29,3.14e+20,0,9.8
+CCO,3.36e-10,7.5e-11,4.5,Cernicharo+2021,O + CCH -> H + CCO,neutral-neutral,2173,1.00e-11,0.63,3.1,3.91,3.12,0,
+SO,3.16e-10,,,detected; X not verified,CO + HSO+ -> SO + HCO+,ion-neutral,5156,1.00e-09,0.57,1.55,1,1.6,0,
+H2S,2.42e-10,,,detected; X not verified,H2CSH+ + e- -> H2S + CH,dissociative recombination,7208,2.13e-07,0.22,1.39,1.03,2.2,0,
+N2H+,2.39e-10,,,detected; X not verified,N2 + H3+ -> H2 + N2H+,ion-neutral,2229,1.70e-09,0.97,35.4,25.6,35.4,0,1.2
+HCCCHO,2.12e-10,1.8e-11,12,Gratier+2016,O + CH2CCH -> HCCCHO + H,neutral-neutral,4509,1.60e-10,0.96,216,1.62e+04,244,0,0.65

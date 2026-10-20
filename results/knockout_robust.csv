@@ -1,0 +1,15 @@
+species,reaction,drop_ref_6e6yr,drop_ref_1e6yr,drop_S1.5e-5_4.5e5yr
+HC5N,CN + C4H2 -> H + HC5N,14.4,14.3,1.11
+HC9N,CN + C8H2 -> H + HC9N,49.9,48.8,1.09
+HC7N,CN + C6H2 -> H + HC7N,17.6,14.4,1.05
+C6H-,C6H + e- -> C6H- + Photon,920,1.51e+03,192
+CH3CN,CH3CNH+ + e- -> H + CH3CN,3.16e+03,1.54e+03,6.28e+03
+H2CS,S + CH3 -> H + H2CS,121,326,145
+OCS,S + HCO -> H + OCS,6.23,5.73,1.3
+CH2CHCN,CN + C2H4 -> H + CH2CHCN,3.49e+03,1.61e+03,1.75e+03
+C4H-,C4H + e- -> C4H- + Photon,650,1.48e+03,103
+CH3CCH,H + CH2CCH -> CH3CCH + Photon,6.29,6.71,135
+HNCCC,HC3NH+ + e- -> H + HNCCC,317,316,30.4
+C5O,O + C5H -> H + C5O,1.26e+22,4.38e+30,1.67e+29
+N2H+,N2 + H3+ -> H2 + N2H+,35.4,35,32.2
+HCCCHO,O + CH2CCH -> HCCCHO + H,216,275,2.87e+04
