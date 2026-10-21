@@ -9,8 +9,68 @@
  "X_obs": 8.7e-09,
  "obs_source": "Agundez+2021",
  "generators": [
-  "analogy"
+  "analogy",
+  "llm"
  ],
+ "llm": {
+  "model": "gpt-oss-120b",
+  "reasoning_effort": "low",
+  "usage": {
+   "prompt_tokens": 5262,
+   "completion_tokens": 4808,
+   "total_tokens": 10070,
+   "calls": 2,
+   "format_failures": 0
+  },
+  "calls": [
+   {
+    "target": "C2H4",
+    "status": "ok",
+    "model": "gpt-oss-120b",
+    "reasoning_effort": "low",
+    "cached": false,
+    "proposed": 28,
+    "kept": 0,
+    "discarded": {
+     "unknown_species": 1,
+     "not_conserved": 12,
+     "no_target": 11,
+     "already_in_network": 3,
+     "wrong_direction": 1
+    },
+    "usage": {
+     "prompt_tokens": 2649,
+     "completion_tokens": 2139,
+     "total_tokens": 4788,
+     "calls": 1,
+     "format_failures": 0
+    },
+    "error": null
+   },
+   {
+    "target": "CH3",
+    "status": "ok",
+    "model": "gpt-oss-120b",
+    "reasoning_effort": "low",
+    "cached": false,
+    "proposed": 15,
+    "kept": 3,
+    "discarded": {
+     "unknown_species": 4,
+     "not_conserved": 1,
+     "already_in_network": 7
+    },
+    "usage": {
+     "prompt_tokens": 2613,
+     "completion_tokens": 2669,
+     "total_tokens": 5282,
+     "calls": 1,
+     "format_failures": 0
+    },
+    "error": null
+   }
+  ]
+ },
  "config": {
   "network": "kida.uva.2024",
   "C_O": 1.2,
@@ -26,10 +86,10 @@
  "config2": null,
  "X_base": 9.33e-10,
  "D_base": 1.0591,
- "n_generated": 1260,
+ "n_generated": 1261,
  "n_no_rate": 2,
  "n_simulated": 60,
- "runtime_s": 103,
+ "runtime_s": 184,
  "t": [
   100.0,
   107.5,
@@ -357,7 +417,7 @@
   9.376e-10
  ],
  "disclaimer": "Ranked hypotheses, not confirmed reactions.",
- "created": "2026-10-21T13:44:53+00:00",
+ "created": "2026-10-21T21:47:38+00:00",
  "settings": {
   "abundance_unit": "X relative to H2",
   "K": 30,
@@ -621,7 +681,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H4+ with carbon monoxide (CO) producing ethylene (C2H4) and CO+: rate coefficient at low temperature",
+     "C2H4+ + CO reaction rate constant (C2H4+ with carbon monoxide)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -825,7 +901,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H4+ with molecular hydrogen (H2) producing ethylene (C2H4) and H2+: rate coefficient at low temperature",
+     "C2H4+ + H2 reaction rate constant (C2H4+ with molecular hydrogen)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -1029,7 +1121,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H4+ with N2 producing ethylene (C2H4) and N2+: rate coefficient at low temperature",
+     "C2H4+ + N2 reaction rate constant (C2H4+ with N2)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -1233,7 +1341,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H4+ with atomic hydrogen (H) producing ethylene (C2H4) and H+: rate coefficient at low temperature",
+     "C2H4+ + H reaction rate constant (C2H4+ with atomic hydrogen)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -1437,7 +1561,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of CH3+ with N2 producing methyl radical (CH3) and N2+: rate coefficient at low temperature",
+     "CH3+ + N2 reaction rate constant (CH3+ with N2)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -1641,7 +1781,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C+ with CH4 producing CH+ and methyl radical (CH3): rate coefficient at low temperature",
+     "C+ + CH4 reaction rate constant (C+ with CH4)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -1658,7 +1814,8 @@
    ],
    "class": "ion-neutral",
    "source": [
-    "analogy"
+    "analogy",
+    "llm"
    ],
    "family": "CT",
    "rationale": "analogy, charge transfer: template CH3+ (9 instances in KIDA, local evidence 11)",
@@ -1845,7 +2002,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of CH3+ with atomic hydrogen (H) producing methyl radical (CH3) and H+: rate coefficient at low temperature",
+     "CH3+ + H reaction rate constant (CH3+ with atomic hydrogen)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -2049,7 +2222,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H3 with CH4 producing ethylene (C2H4) and methyl radical (CH3): rate coefficient at low temperature",
+     "C2H3 + CH4 reaction rate constant (C2H3 with CH4)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -2253,7 +2442,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of NH2 with CH4 producing NH3 and methyl radical (CH3): rate coefficient at low temperature",
+     "NH2 + CH4 reaction rate constant (NH2 with CH4)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },
@@ -2457,7 +2662,23 @@
    ],
    "robust": null,
    "config2": null,
-   "literature": null,
+   "literature": {
+    "status": "unchecked",
+    "refs": [],
+    "k_lit": null,
+    "k_lit_T": null,
+    "k_lit_ref": null,
+    "k_lit_same_channel": null,
+    "k_lit_quote": "",
+    "note": "",
+    "backend": "valency-bond",
+    "query": [
+     "gas-phase reaction of C2H3 with HCN producing ethylene (C2H4) and CN: rate coefficient at low temperature",
+     "C2H3 + HCN reaction rate constant (C2H3 with HCN)"
+    ],
+    "checked": "2026-10-22",
+    "error": "Bond: BondError: initialize: <urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Basic Constraints of CA cert not marked critical (_ssl.c:1032)>"
+   },
    "lit_run": null,
    "error": ""
   },

@@ -4,6 +4,11 @@ discover.py - Discovery mode against the TMC-1 observation (tapir.discovery).
 Reference configuration (kida.uva.2024, C/O = 1.2, S = 8e-8, W24_GAS, t_ref = 6e6 yr):
   1. base run; the flux pre-ranking (tapir.flux) is computed on it;
   2. candidates producing the target from the chosen generators (nothing hidden), merged by canonical key;
+     llm (tapir.generator_llm): one LLM call per target, with the N_CONTEXT main formation and destruction
+     reactions of the target in the base run at t_ref as context and needed_effect "increase"; one client for
+     the whole run, so TAPIR_LLM_MAX_CALLS caps it; answers cached in results/llm_cache; a FormatError
+     (raised by the client after its own retry) is logged as status "format_error" and that target keeps
+     the other generators' candidates only; the reasoning effort is the configured one (no fallback chain);
   3. rate from tapir.rates.RateEstimator; candidates with k = 0 (unpaired_increase, ion_h_transfer)
      or without a rate are not simulated;
   4. simulate the top K by flux, each added alone to the base network;
@@ -17,14 +22,16 @@ Reference configuration (kida.uva.2024, C/O = 1.2, S = 8e-8, W24_GAS, t_ref = 6e
 Upstream mode (--upstream C2H4,CH3): steps 2-4 use candidates producing each precursor, pre-ranked by
 flux towards it, top K per precursor (field "via"); scoring and k_needed stay on the target.
 Simulations run on --procs processes with OMP_NUM_THREADS=1.
-usage: python -m scripts.discover [CH2CCH] [--k 40] [--top 20] [--procs 4] [--generators analogy]
-                                  [--no-bisect] [--existing 5] [--upstream C2H4,CH3]
+--dry-run: base run and LLM prompts only; prints, per LLM call, whether it is cached and the estimated
+tokens, then exits (no LLM call, no candidate simulation, nothing written).
+usage: python -m scripts.discover [CH2CCH] [--k 40] [--top 20] [--procs 4] [--generators analogy,llm]
+                                  [--no-bisect] [--existing 5] [--upstream C2H4,CH3] [--dry-run]
 Output: results/discovery/<target>.json (top N with the target's curve) and <target>.csv (all K);
 <target>_upstream.json / .csv in upstream mode.
 """
 import os
 os.environ.setdefault("OMP_NUM_THREADS", "1")
-import argparse, csv, datetime, json, multiprocessing as mp, time
+import argparse, csv, datetime, glob, hashlib, json, multiprocessing as mp, time
 from tapir import chem
 from tapir.darkcloud import parse_kida, load_rows, W24_GAS
 from tapir.discovery import (DISCLAIMER, MAX_SIMS, K_MIN, K_MAX, K_MAX_DEFAULT, FACTOR_LIMIT, observation,
@@ -33,12 +40,16 @@ from tapir.discovery import (DISCLAIMER, MAX_SIMS, K_MIN, K_MAX, K_MAX_DEFAULT, 
                              bottleneck)
 from tapir.flux import FluxScorer
 from tapir.generator import Generator
+from tapir.generator_llm import LLMGenerator, N_CONTEXT, SCHEMA, CACHE_DIR
+from tapir.llm_client import FormatError
 from tapir.knockout import NET, EL, T_REF, run, X, label
 from tapir.rates import RateEstimator, ion_flag
 from tapir.paths import RESULTS, relative
 from scripts.knockout_demo import budget
 
-GENERATORS = {"analogy": lambda rows24, raw14, target: Generator(rows24, raw14).candidates(target)}
+GENERATORS = ("analogy", "llm")
+TOKENS_PER_CHAR = 0.62          # dry-run fallback: prompt tokens / characters of the first cached answer
+COMPLETION_TOKENS = (2000, 8000)  # dry-run range per call (~2200 measured at the default reasoning effort)
 CSV_FIELDS = ("rank", "reaction", "via", "source", "family", "class", "k", "k_source", "unpaired_flag",
               "ion_flag", "flux_rank", "dX_flux", "X_cand", "x_ratio", "D", "delta_D", "n_worse", "k_needed",
               "k_status", "n_bisect", "k_max_class", "capture_feasible", "error")
@@ -48,11 +59,83 @@ def _simulate(task):
     return simulate(*task)
 
 
-def candidates(names, rows24, raw14, target):
+def llm_context(net, t, y, target):
+    """(formation, destruction) labels of the N_CONTEXT main reactions of the target in the base run at t_ref."""
+    form, dest = budget(net, t, y, target, T_REF, N_CONTEXT)
+    return [lab for lab, _ in form], [lab for lab, _ in dest]
+
+
+def llm_record(llm, target, before, error=None):
+    """Log entry of one use of the LLM generator. usage: the client's counters for this use (None if
+    cached); token counts None when a failed request reported no usage (never estimated)."""
+    c = llm.client
+    usage = {k: v - before.get(k, 0) for k, v in getattr(c, "stats", {}).items()}
+    if error is not None and not usage.get("total_tokens"):
+        usage.update(prompt_tokens=None, completion_tokens=None, total_tokens=None)
+    rec = dict(target=target, status="ok" if error is None else "format_error", model=c.model,
+               reasoning_effort=getattr(c, "reasoning_effort", None), cached=False, proposed=None, kept=0,
+               discarded=None, usage=usage, error=error)
+    if error is None:
+        last = llm.last
+        rec.update(cached=last["cached"], proposed=last["returned_raw"], kept=last["considered"],
+                   discarded={k: v for k, v in last["discarded"].items() if v},
+                   usage=None if last["cached"] else usage)
+    return rec
+
+
+def make_generators(names, rows24, raw14, net, t, y, client=None):
+    """{name: f(target) -> candidates}. The llm one keeps one LLMGenerator (and client) for the run and
+    appends a llm_record of each use to f.log; on a FormatError it returns no candidates (graceful
+    degradation to the other generators)."""
+    gens = {}
+    if "analogy" in names:
+        gens["analogy"] = Generator(rows24, raw14).candidates
+    if "llm" in names:
+        llm = LLMGenerator(rows24, raw14, client=client, allow_fallback_context=False)
+
+        def f(target):
+            before = dict(getattr(llm.client, "stats", {}))
+            try:
+                cands = llm.candidates(target, llm_context(net, t, y, target), "increase")
+            except FormatError as e:
+                f.log.append(llm_record(llm, target, before, error=f"{type(e).__name__}: {e}"))
+                return []
+            f.log.append(llm_record(llm, target, before))
+            return cands
+        f.log, f.llm = [], llm
+        gens["llm"] = f
+    return gens
+
+
+def dry_run(targets, rows24, raw14, net, t, y):
+    """Per target: prompt of the llm generator, cached or not, estimated tokens; no LLM call."""
+    from tapir import llm_client
+    stub = type("DryRun", (), dict(model=llm_client.MODEL, reasoning_effort=llm_client.REASONING_EFFORT))
+    llm = LLMGenerator(rows24, raw14, client=stub, allow_fallback_context=False)
+    ratios = [d["usage"]["prompt_tokens"] / len(d["prompt"]) for d in map(lambda p: json.load(open(p)),
+              sorted(glob.glob(os.path.join(CACHE_DIR, "*.json")))) if (d.get("usage") or {}).get("calls") == 1]
+    ratio = sum(ratios) / len(ratios) if ratios else TOKENS_PER_CHAR
+    print(f"DRY RUN llm: model={stub.model} reasoning_effort={stub.reasoning_effort} "
+          f"max_calls={llm_client.MAX_CALLS} (one retry per call on a format error)")
+    new, pt = 0, 0.0
+    for target in targets:
+        prompt = llm.prompt(target, llm_context(net, t, y, target), "increase")
+        h = hashlib.sha256(json.dumps([stub.model, stub.reasoning_effort, SCHEMA, prompt]).encode()).hexdigest()
+        cached = os.path.exists(os.path.join(CACHE_DIR, h + ".json"))
+        print(f" {target}: {'cached' if cached else 'NEW CALL'}  prompt {len(prompt)} chars ~ {ratio * len(prompt):.0f} tokens")
+        if not cached:
+            new, pt = new + 1, pt + ratio * len(prompt)
+    lo, hi = (round(pt + new * c) for c in COMPLETION_TOKENS)
+    print(f" {new} new call(s): ~{lo}-{hi} tokens (x2 if every call is retried); "
+          f"prompt tokens/char {ratio:.2f} from {len(ratios)} cached answer(s)")
+    return new, lo, hi
+
+
+def candidates(gens, target):
     """Union of the generators' candidates, merged by canonical key; 'source' lists the generators."""
     out = {}
-    for g in names:
-        for c in GENERATORS[g](rows24, raw14, target):
+    for g, gen in gens.items():
+        for c in gen(target):
             k = chem.canonical_key(c)
             if k in out:
                 out[k]["source"].append(g)
@@ -70,12 +153,12 @@ def existing_tasks(net, t, y, target, n):
             for lab, frac in part if lab in by_label]
 
 
-def upstream_candidates(gens, precursors, rows24, raw14, scorer, estimator, k):
+def upstream_candidates(gens, precursors, scorer, estimator, k):
     """Top k by flux towards each precursor -> (candidates with 'via' and 'flux_rank', counts).
     A candidate found for several precursors keeps its first flux rank; 'via' joins them with '+'."""
     top, n = {}, dict(generated=0, no_rate=0, k_zero=0)
     for p in precursors:
-        cands = candidates(gens, rows24, raw14, p)
+        cands = candidates(gens, p)
         for c in cands:
             c["ion_flag"] = ion_flag(c)
         ranked, no_rate = scorer.score(cands, p, estimator=estimator)
@@ -97,14 +180,15 @@ if __name__ == "__main__":
     ap.add_argument("--top", type=int, default=20, help="hypotheses written to the JSON")
     ap.add_argument("--procs", type=int, default=4)
     ap.add_argument("--generators", default="analogy", help=f"comma-separated: {', '.join(GENERATORS)}")
+    ap.add_argument("--dry-run", action="store_true", help="LLM prompts and token estimate only, then exit")
     ap.add_argument("--no-bisect", action="store_true", help="skip k_needed (k_needed = null)")
     ap.add_argument("--existing", type=int, default=5,
                     help="main formation and destruction reactions of the existing network to scale (0: skip)")
     ap.add_argument("--upstream", default="", help="comma-separated precursors: upstream mode (e.g. C2H4,CH3)")
     a = ap.parse_args()
-    gens = [g.strip() for g in a.generators.split(",") if g.strip()]
-    unknown = [g for g in gens if g not in GENERATORS]
-    if unknown or not gens:
+    names = [g.strip() for g in a.generators.split(",") if g.strip()]
+    unknown = [g for g in names if g not in GENERATORS]
+    if unknown or not names:
         ap.error(f"unknown generators {unknown}; available: {', '.join(GENERATORS)}")
     precursors = [p.strip() for p in a.upstream.split(",") if p.strip()]
     t0 = time.time()
@@ -117,6 +201,12 @@ if __name__ == "__main__":
     missing = [p for p in precursors if p not in net.idx]
     if missing:
         ap.error(f"precursors not in the network: {missing}")
+    if a.dry_run:
+        if "llm" not in names:
+            ap.error("--dry-run estimates the llm generator: add it to --generators")
+        dry_run(precursors or [target], rows24, raw14, net, t, y)
+        raise SystemExit(0)
+    gens = make_generators(names, rows24, raw14, net, t, y)
     form = existing_tasks(net, t, y, target, 2)[:2]
     supply = [s for row, role, _ in form if role == "formation" for s in row["reac"]]
     species = sorted(set(obs) | set(precursors) | set(supply))
@@ -126,10 +216,10 @@ if __name__ == "__main__":
     ex_tasks = existing_tasks(net, t, y, target, a.existing) if a.existing > 0 and not precursors else []
 
     if precursors:
-        top, n = upstream_candidates(gens, precursors, rows24, raw14, scorer, RateEstimator(rows24), a.k)
+        top, n = upstream_candidates(gens, precursors, scorer, RateEstimator(rows24), a.k)
         n_gen, no_rate, n_k_zero = n["generated"], n["no_rate"], n["k_zero"]
     else:
-        cands = candidates(gens, rows24, raw14, target)
+        cands = candidates(gens, target)
         for c in cands:
             c["ion_flag"] = ion_flag(c)
         ranked, no_rate = scorer.score(cands, target, estimator=RateEstimator(rows24))
@@ -141,8 +231,20 @@ if __name__ == "__main__":
     print(f"DISCOVERY {target}  X_obs={x_obs:.2e} ({obs_src})  base X={xbase[target]:.2e} "
           f"(x_ratio {xbase[target] / x_obs:.2g}, D={D_base:.3f} on {len(obs)} species)"
           + (f"  upstream via {','.join(precursors)}" if precursors else ""))
-    print(f" generators={','.join(gens)}: {n_gen} candidates, {no_rate} without a rate, "
+    print(f" generators={','.join(names)}: {n_gen} candidates, {no_rate} without a rate, "
           f"{n_k_zero} with k = 0, simulating {len(top)}")
+    llm_doc = None
+    if "llm" in gens:
+        f = gens["llm"]
+        llm_doc = dict(model=f.llm.client.model, reasoning_effort=getattr(f.llm.client, "reasoning_effort", None),
+                       usage=dict(getattr(f.llm.client, "stats", {})), calls=f.log)
+        for e in f.log:
+            if e["status"] == "ok":
+                print(f" llm {e['target']}: ok, {'cached' if e['cached'] else 'called'}, {e['proposed']} proposed, "
+                      f"{e['kept']} kept, discarded {e['discarded']}, usage {e['usage']}")
+            else:
+                print(f" llm {e['target']}: {e['status']} ({e['error']}), analogy only, usage {e['usage']}")
+        print(f" llm usage: {llm_doc['usage']}")
 
     with mp.Pool(a.procs) as pool:
         bn_row = form[0][0]
@@ -182,7 +284,7 @@ if __name__ == "__main__":
     os.makedirs(out_dir, exist_ok=True)
     doc = dict(
         species=target, mode="formation", search="upstream" if precursors else "direct", upstream=precursors,
-        X_obs=x_obs, obs_source=obs_src, generators=gens,
+        X_obs=x_obs, obs_source=obs_src, generators=names, llm=llm_doc,
         config=dict(network="kida.uva.2024", C_O=round(EL["C+"] / EL["O"], 3), S=EL["S+"], t_ref=T_REF,
                     physics=W24_GAS),
         config2=None,

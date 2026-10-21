@@ -5,7 +5,7 @@ rank,reaction,via,source,family,class,k,k_source,unpaired_flag,ion_flag,flux_ran
 4,C2H4+ + H -> C2H4 + H+,C2H4,analogy,CT,ion-neutral,2e-09,capture_guess,,,5,1.216e-08,1.939e-09,0.2229,1.0533,-0.0058,2,,not_reachable,1,1e-08,False,
 5,CH3+ + N2 -> CH3 + N2+,CH3,analogy,CT,ion-neutral,2e-09,capture_guess,increase,h_transfer,9,3.112e-08,7.61e-10,0.08747,1.0558,-0.0033,0,,not_reachable,1,1e-08,False,
 6,C+ + CH4 -> CH+ + CH3,CH3,analogy,HA,ion-neutral,2e-09,capture_guess,,,13,1.368e-08,8.933e-10,0.1027,1.0568,-0.0023,0,,not_reachable,1,1e-08,False,
-7,CH3+ + H -> CH3 + H+,CH3,analogy,CT,ion-neutral,2e-09,capture_guess,,,17,1.01e-08,8.611e-10,0.09898,1.057,-0.0021,0,,not_reachable,1,1e-08,False,
+7,CH3+ + H -> CH3 + H+,CH3,analogy+llm,CT,ion-neutral,2e-09,capture_guess,,,17,1.01e-08,8.611e-10,0.09898,1.057,-0.0021,0,,not_reachable,1,1e-08,False,
 8,C2H3 + CH4 -> C2H4 + CH3,C2H4,analogy,HA,neutral-neutral,1e-10,capture_guess,,,9,9.943e-10,1.009e-09,0.1159,1.0584,-0.0007,0,,not_reachable,1,1e-09,False,
 9,NH2 + CH4 -> NH3 + CH3,CH3,analogy,HA,neutral-neutral,1e-10,capture_guess,,,18,9.224e-09,8.069e-10,0.09275,1.0585,-0.0006,0,,not_reachable,1,1e-09,False,
 10,C2H3 + HCN -> C2H4 + CN,C2H4,analogy,HA,neutral-neutral,1e-10,capture_guess,,,12,4.21e-10,9.785e-10,0.1125,1.0587,-0.0004,0,,not_reachable,1,1e-09,False,

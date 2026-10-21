@@ -11,6 +11,7 @@ from tapir.discovery import (bisect_log_k, distance, observed_set, capture_feasi
 from tapir.flux import kinetic_row
 from tapir.knockout import NET, T_REF, run, X, label
 from tapir.paths import ROOT
+from tapir.llm_client import FormatError
 from tapir.rates import (RateEstimator, ion_h_transfer, ion_flag, ion_h_transfer_validation, H_TRANSFER,
                          ION_H_TRANSFER_MAX, ION_H_TRANSFER_EXCLUDE)
 from scripts.best_time_w24 import D_of_t
@@ -192,6 +193,108 @@ def test_upstream_mode():
         assert "CH2CCH" not in h["prod"]
         assert math.isclose(h["curve"][i_ref], h["X_cand"], rel_tol=1e-3)          # X_cand is CH2CCH
         assert math.isclose(h["x_ratio"], h["X_cand"] / doc["X_obs"], rel_tol=1e-3)
+
+
+# --- llm generator in scripts.discover (fake client, no call to LiteLLM) -----------------------
+
+class FakeClient:
+    """LLMClient interface; raises FormatError (as the real client after its retry: two requests, no
+    usage) for the targets in `fail`, otherwise returns `proposals` with 100 tokens per request."""
+    model, reasoning_effort = "fake", "low"
+
+    def __init__(self, proposals, fail=()):
+        self.proposals, self.fail, self.prompts = proposals, set(fail), []
+        self.stats = dict(prompt_tokens=0, completion_tokens=0, total_tokens=0, calls=0, format_failures=0)
+
+    def ask(self, prompt, schema, validate):
+        self.prompts.append(prompt)
+        if any(f"Target species: {t}\n" in prompt for t in self.fail):
+            self.stats["calls"] += 2; self.stats["format_failures"] += 2
+            raise FormatError("invalid answer after one retry: json_validate_failed")
+        self.stats["calls"] += 1
+        for k, v in (("prompt_tokens", 60), ("completion_tokens", 40), ("total_tokens", 100)):
+            self.stats[k] += v
+        return validate(dict(candidates=self.proposals))
+
+
+def prop(reac, prod):
+    return dict(reactants=reac, products=prod, reaction_class="neutral-neutral", rationale="test")
+
+
+def base_and_generators(client):
+    from scripts.discover import make_generators
+    from tapir.darkcloud import parse_kida
+    from tapir import chem
+    net, t, y = run()
+    raw14 = parse_kida(chem.REACTIONS_2014)
+    gens = make_generators(["analogy", "llm"], ROWS24, raw14, net, t, y, client=client)
+    gens["llm"].llm.cache_dir = tempfile.mkdtemp()
+    return net, t, y, gens
+
+
+def best_analogy(target):
+    """Best analogy candidate forming `target` (a valid novel proposal for the fake LLM)."""
+    from tapir.generator import Generator
+    from tapir.darkcloud import parse_kida
+    from tapir import chem
+    return next(c for c in Generator(ROWS24, parse_kida(chem.REACTIONS_2014)).candidates(target)
+                if target in c["prod"] and target not in c["reac"])
+
+
+def test_llm_generator_merged_with_analogy():
+    """An LLM proposal equal to an analogy candidate is merged (source lists both); the context is the
+    target's budget in the base run and the direction is 'increase'."""
+    from scripts.discover import candidates, llm_context
+    from tapir import chem
+    best = best_analogy("CH2CCH")
+    client = FakeClient([prop(best["reac"], best["prod"]), prop(best["prod"], best["reac"])])   # + its reverse
+    net, t, y, gens = base_and_generators(client)
+    cands = candidates(gens, "CH2CCH")
+    merged = next(c for c in cands if chem.canonical_key(c) == chem.canonical_key(best))
+    assert merged["source"] == ["analogy", "llm"]
+    assert all(c["source"] != ["llm"] for c in cands)             # the reverse is wrong_direction
+    [e] = gens["llm"].log
+    assert e["target"] == "CH2CCH" and e["status"] == "ok" and e["cached"] is False and e["error"] is None
+    assert (e["model"], e["reasoning_effort"], e["proposed"], e["kept"]) == ("fake", "low", 2, 1)
+    assert e["discarded"] == {"wrong_direction": 1} and client.stats["calls"] == 1
+    assert e["usage"]["total_tokens"] == 100 and e["usage"]["calls"] == 1
+    form, dest = llm_context(net, t, y, "CH2CCH")
+    assert all(lab in client.prompts[0] for lab in form + dest) and "net formation" in client.prompts[0]
+    candidates(gens, "CH2CCH")                                     # second time: from the cache
+    assert client.stats["calls"] == 1 and gens["llm"].log[-1]["cached"] is True
+    assert gens["llm"].log[-1]["usage"] is None
+
+
+def test_llm_format_error_degrades_to_analogy():
+    """FormatError on C2H4: logged as format_error without invented tokens, C2H4 keeps the analogy
+    candidates, and CH3 is still asked and contributes its LLM candidate."""
+    from scripts.discover import candidates, upstream_candidates
+    from tapir.flux import FluxScorer
+    from tapir import chem
+    best = best_analogy("CH3")
+    client = FakeClient([prop(best["reac"], best["prod"])], fail=["C2H4"])
+    net, t, y, gens = base_and_generators(client)
+    analogy_c2h4 = {chem.canonical_key(c) for c in gens["analogy"]("C2H4")}
+    assert {chem.canonical_key(c) for c in candidates(gens, "C2H4")} == analogy_c2h4
+    gens["llm"].log.clear()
+    top, n = upstream_candidates(gens, ["C2H4", "CH3"], FluxScorer(net, t, y), RateEstimator(ROWS24), 5)
+    fail, ok = gens["llm"].log
+    assert (fail["target"], fail["status"], ok["target"], ok["status"]) == ("C2H4", "format_error", "CH3", "ok")
+    assert "json_validate_failed" in fail["error"] and fail["kept"] == 0 and fail["proposed"] is None
+    assert fail["usage"]["total_tokens"] is None and fail["usage"]["calls"] == 2       # tokens not invented
+    assert ok["kept"] == 1 and ok["usage"]["total_tokens"] == 100
+    assert {h["via"] for h in top} == {"C2H4", "CH3"} and n["generated"] > 0
+
+
+def test_dry_run_makes_no_call():
+    """--dry-run with an unreachable proxy: prompts and estimate only, nothing written."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = dict(os.environ, TAPIR_RESULTS=tmp, OMP_NUM_THREADS="1", LITELLM_BASE_URL="http://127.0.0.1:9/v1")
+        out = subprocess.run([sys.executable, "-m", "scripts.discover", "CH2CCH", "--generators", "analogy,llm",
+                              "--upstream", "C2H4,CH3", "--dry-run"],
+                             cwd=ROOT, env=env, check=True, capture_output=True, text=True).stdout
+        assert not os.path.exists(os.path.join(tmp, "discovery")) and not os.path.exists(os.path.join(tmp, "llm_cache"))
+    assert "C2H4: NEW CALL" in out and "CH3: NEW CALL" in out and "2 new call(s)" in out
 
 
 if __name__ == "__main__":
