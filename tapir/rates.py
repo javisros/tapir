@@ -21,6 +21,16 @@ and triplet ions such as OH+, HS+, NH2+ or N+ that the count takes as closed she
 and ion-neutral are flagged only, and a flagged candidate of any other class with a rate is excluded:
 k = 0, k_source = "unpaired_increase".
 
+Ion H-transfer pattern (ion_h_transfer): ion-neutral, both reactants with an even electron count and
+outside REACTIVE_EVEN_ELECTRON, two products with an odd count (c-C3H2 + H3+ -> CH2CCH + H2+): an H
+atom where real chemistry moves a proton. Validation on kida.uva.2024 (ion_h_transfer_validation:
+ion-neutral, gamma = 0 for Kooij rows, k(10 K) > 1e-11; 3511 reactions): 189 match (5.4 %), above the
+2 % threshold (ION_H_TRANSFER_MAX), so matching candidates are flagged only (ion_flag = "h_transfer")
+and keep their rate. The matches are charge transfer (118: H+ + X -> H + X+, N+, Mg, Fe), other
+rearrangements (46, mostly C-chain growth with H loss: C2H2 + C4H+ -> H + C6H2+) and H abstraction
+by the ion (24: H2 + CN+ -> H + HCN+). Only one (CO + H- -> HCO + e-) moves the H from the ion to the
+neutral, as the candidates do; the count is by electron parity, not by mechanism.
+
 A neutral species is barrierless-reactive if ANY of:
   (i)   odd number of valence electrons (radical);
   (ii)  it is in REACTIVE_EVEN_ELECTRON (triplet ground state or reactive singlet);
@@ -41,8 +51,8 @@ from .knockout import reaction_class, PHYSICAL
 
 NEUTRAL_H2 = "neutral + H2"
 CLOSED_SHELL = "closed-shell neutral-neutral"
-KIDA_MEDIAN, UNPAIRED_INCREASE = "kida_class_median", "unpaired_increase"
-INCREASE = "increase"
+KIDA_MEDIAN, UNPAIRED_INCREASE, ION_H_TRANSFER = "kida_class_median", "unpaired_increase", "ion_h_transfer"
+INCREASE, H_TRANSFER = "increase", "h_transfer"
 
 # Even-electron neutrals that react without a barrier. Editable.
 REACTIVE_EVEN_ELECTRON = {
@@ -81,6 +91,10 @@ UNPAIRED_ATOMS = {"N": 3, "P": 3}
 # Classes where an increase of unpaired electrons is flagged but does not change k (see the docstring).
 UNPAIRED_FLAG_ONLY = ("ion-neutral", "ion-ion")
 UNPAIRED_EXEMPT = ("dissociative recombination",)
+# Ion H-transfer: excluded (k = 0) only if the pattern is rarer than this among fast KIDA ion-neutral
+# reactions. Measured 5.4 % (see the docstring) -> flag only.
+ION_H_TRANSFER_MAX = 0.02
+ION_H_TRANSFER_EXCLUDE = False
 
 
 def electrons(s):
@@ -126,6 +140,28 @@ def unpaired_validation(rows):
         n, exc = out.get(c, (0, []))
         out[c] = (n + 1, exc + [r] if unpaired_flag(r) else exc)
     return out
+
+
+def ion_h_transfer(r):
+    """Ion-neutral with both reactants even-electron and outside REACTIVE_EVEN_ELECTRON, and two
+    odd-electron products (see the docstring)."""
+    if reaction_class(r) != "ion-neutral" or len(r["prod"]) != 2:
+        return False
+    return (all(electrons(s) % 2 == 0 and s not in REACTIVE_EVEN_ELECTRON for s in r["reac"])
+            and all(electrons(s) % 2 == 1 for s in r["prod"]))
+
+
+def ion_flag(r):
+    """H_TRANSFER if the reaction matches ion_h_transfer, else None."""
+    return H_TRANSFER if ion_h_transfer(r) else None
+
+
+def ion_h_transfer_validation(rows):
+    """Ion-neutral reactions of `rows` without barrier (gamma = 0 for Kooij rows; ionpol rows kept)
+    and with k(10 K) > EVIDENCE_K -> (number of reactions, [those matching ion_h_transfer])."""
+    fast = [r for r in rows if reaction_class(r) == "ion-neutral"
+            and not (r["formula"] == 3 and r["C"] != 0) and k10(r) > EVIDENCE_K]
+    return len(fast), [r for r in fast if ion_h_transfer(r)]
 
 
 def capture_max(r):
@@ -189,4 +225,6 @@ class RateEstimator:
             row, src = estimate_row(cand)
         if row is not None and reaction_class(cand) not in UNPAIRED_FLAG_ONLY and unpaired_flag(cand):
             row, src = dict(row, A=0.0), UNPAIRED_INCREASE
+        if row is not None and ION_H_TRANSFER_EXCLUDE and ion_h_transfer(cand):
+            row, src = dict(row, A=0.0), ION_H_TRANSFER
         return row, src
