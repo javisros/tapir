@@ -14,24 +14,33 @@ Required rate (k_needed): bisection in log10(k) at 10 K, between K_MIN and K_MAX
 class, until X_target(t_ref) = X_obs. The extremes are evaluated first:
   k_status = "not_reachable"  X_target < X_obs even at K_MAX
              "already_above"  X_target > X_obs already at K_MIN
-             "found"          k_needed interpolated in log-log inside the final bracket
-             "error"          an integration failed
+             "ok"             k_needed interpolated in log-log inside the final bracket
+             "error"          an integration failed (none so far)
 at most MAX_SIMS simulations per candidate. Assumes X_target grows with k (it does for a formation
 reaction unless the candidate also consumes a precursor of the target). capture_feasible =
 k_needed <= rates.CAPTURE_MAX of the class (True if already_above, False if not_reachable).
+
+Existing reactions ("existing" block): for the main formation and destruction reactions of the target
+in the base network at t_ref, the factor on their k that gives X_target = X_obs (same bisection, in
+log10 of the factor: formation 1 to FACTOR_LIMIT["formation"], destruction 1 to
+FACTOR_LIMIT["destruction"]), compared with the KIDA uncertainty factor F of the reaction
+(kida_uncertainty; within_uncertainty = 1/F <= factor <= F). The reaction is replaced by a copy with
+A times the factor (every rate formula is linear in A), so factor 1 is the base network.
 """
 import math
 import numpy as np
 from .darkcloud import W24_GAS
-from .knockout import EL, T_REF, reaction_class, run, X, label
+from .knockout import EL, T_REF, reaction_class, run, X, label, is_row
 from .observations import GRATIER, observed
-from .rates import capture_max
+from .rates import capture_max, k10
 
 FLOOR = 1e-30                                   # same floor as scripts/best_time_w24.D_of_t
 K_MIN = 1e-14
 K_MAX = {"dissociative recombination": 1e-5}    # other classes: K_MAX_DEFAULT
 K_MAX_DEFAULT = 1e-7
 MAX_SIMS = 10
+OK = "ok"
+FACTOR_LIMIT = {"formation": 1e3, "destruction": 1e-3}
 LOG_TOL = 0.01                                  # |log10 X / X_obs| that stops the bisection early
 DISCLAIMER = "Ranked hypotheses, not confirmed reactions."
 FAMILY_NAMES = dict(PT="proton transfer", DR="dissociative recombination (H loss)",
@@ -69,11 +78,11 @@ def k_bounds(r):
     return K_MIN, K_MAX.get(reaction_class(r), K_MAX_DEFAULT)
 
 
-def simulate(row, target, species, el=EL, t_ref=T_REF):
-    """Reference network (+ row if not None) -> dict(xs={species: X at t_ref}, t, curve of the target,
-    runtime, error). Integration errors are returned, not raised."""
+def simulate(row, target, species, el=EL, t_ref=T_REF, exclude=None):
+    """Reference network (minus `exclude`, + row if not None) -> dict(xs={species: X at t_ref}, t,
+    curve of the target, runtime, error). Integration errors are returned, not raised."""
     try:
-        net, t, y = run(el, extra_reactions=[row] if row is not None else ())
+        net, t, y = run(el, extra_reactions=[row] if row is not None else (), exclude=exclude)
     except Exception as e:                                  # solve_ivp failure or bad row
         return dict(xs=None, t=None, curve=None, runtime=None, error=f"{type(e).__name__}: {e}")
     return dict(xs={s: X(net, t, y, s, t_ref) for s in species if s in net.idx}, t=t.tolist(),
@@ -111,14 +120,14 @@ def bisect_log_k(f, x_obs, lo, hi, max_sims=MAX_SIMS, tol=LOG_TOL):
         if xm is None:
             return out("error")
         if abs(math.log10(max(xm, FLOOR)) - target) <= tol:
-            return out("found", 10 ** mid)
+            return out(OK, 10 ** mid)
         if xm < x_obs:
             llo, xlo = mid, xm
         else:
             lhi, xhi = mid, xm
     a, b = math.log10(max(xlo, FLOOR)), math.log10(max(xhi, FLOOR))
     lk = llo if b == a else llo + (target - a) / (b - a) * (lhi - llo)
-    return out("found", 10 ** lk)
+    return out(OK, 10 ** lk)
 
 
 def capture_feasible(r, k_needed, k_status):
@@ -128,7 +137,7 @@ def capture_feasible(r, k_needed, k_status):
     if k_status == "not_reachable":
         return False
     cap = capture_max(r)
-    if k_status != "found" or cap is None:
+    if k_status != OK or cap is None:
         return None
     return bool(k_needed <= cap)
 
@@ -168,26 +177,113 @@ def sig(v, n=4):
     return v if not v else float(f"{v:.{n - 1}e}")
 
 
-def hypothesis(c, sim, base, obs, target):
-    """Record of one simulated candidate (fields of the discovery JSON, without rank and k_needed)."""
+def hypothesis(c, sim, D_base, obs, target):
+    """Record of one simulated candidate (fields of the discovery JSON, without rank and k_needed).
+    T3 (literature), T4 (robust, config2) and T8 (lit_run) fill the fields left at None."""
     x_obs = obs[target]
-    rec = dict(reaction=label(c), reac=list(c["reac"]), prod=list(c["prod"]),
-               source=c.get("source", "analogy"), rationale=rationale(c), family=c.get("family"),
-               reaction_class=reaction_class(c), prior_score=c.get("score"),
-               k=sig(c["k"]), k_source=c["k_source"], unpaired_flag=c.get("unpaired_flag"),
-               ion_flag=c.get("ion_flag"), flux_rank=c["flux_rank"], dX_pred=sig(c["dX"]),
-               X_target=None, x_ratio=None, D=None, delta_D=None,
-               k_needed=None, k_status=None, k_needed_sims=None, capture_max=capture_max(c),
-               capture_feasible=None, robust=None, literature=None, k_lit=None,
-               error=sim["error"], curve=None)
+    rec = dict(reaction=label(c), reac=list(c["reac"]), prod=list(c["prod"]), **{"class": reaction_class(c)},
+               source=list(c.get("source", ["analogy"])), family=c.get("family"), rationale=rationale(c),
+               prior_score=c.get("score"), k_source=c["k_source"], k=sig(c["k"]),
+               unpaired_flag=c.get("unpaired_flag"), ion_flag=c.get("ion_flag"), flux_rank=c["flux_rank"],
+               dX_flux=sig(c["dX"]), X_cand=None, x_ratio=None, D=None, delta_D=None,
+               k_needed=None, k_status=None, k_max_class=capture_max(c), capture_feasible=None, n_bisect=None,
+               curve=None, robust=None, config2=None, literature=None, lit_run=None, error=sim["error"])
     if sim["xs"] is not None:
         d = distance(sim["xs"], obs)
-        rec.update(X_target=sig(sim["xs"][target]), x_ratio=sig(sim["xs"][target] / x_obs),
-                   D=round(d, 4), delta_D=round(d - base["D"], 4),
-                   curve=[sig(v) for v in sim["curve"]])
+        rec.update(X_cand=sig(sim["xs"][target]), x_ratio=sig(sim["xs"][target] / x_obs),
+                   D=round(d, 4), delta_D=round(d - D_base, 4), curve=[sig(v) for v in sim["curve"]])
     return rec
 
 
 def rank_key(h):
     """Ranking: delta_D ascending (failed runs last), then the reaction label."""
     return (math.inf if h["delta_D"] is None else h["delta_D"], h["reaction"])
+
+
+# --- existing reactions ---------------------------------------------------------------------------
+
+def kida_uncertainty(path):
+    """Uncertainty factor F and its temperature coefficient g of each row of a kida.uva file, which
+    darkcloud.parse_kida does not read -> {row_key: (F, g)}. Same columns as parse_kida."""
+    out = {}
+    for line in open(path):
+        if line.startswith("!") or not line.strip():
+            continue
+        t = line[91:].split()
+        key = (int(t[10]), tuple(line[0:34].split()), tuple(line[34:91].split()), float(t[7]), float(t[8]))
+        out[key] = (float(t[3]), float(t[4]))
+    return out
+
+
+def row_key(r):
+    """Key of a network row in kida_uncertainty: id, reactants, products and temperature range."""
+    return (r["id"], tuple(r["reac"]), tuple(r["prod"]), r["tmin"], r["tmax"])
+
+
+def scaled(row, factor):
+    """Copy of a network row with its rate multiplied by factor (every formula is linear in A)."""
+    return dict(row, A=row["A"] * factor)
+
+
+def simulate_scaled(row, factor, target, species):
+    """Reference network with `row` replaced by scaled(row, factor); see simulate."""
+    return simulate(scaled(row, factor), target, species, exclude=is_row(row))
+
+
+def rate_factor(task):
+    """(network row, role, target, species, X_obs) -> bisection of the factor on k that gives
+    X_target = X_obs (bisect_log_k on u, with factor = u for formation and 1/u for destruction, so that
+    X_target grows with u), then one run at that factor (at the limit if not reachable) for D and curve."""
+    row, role, target, species, x_obs = task
+    limit = FACTOR_LIMIT[role]
+    to_factor = (lambda u: u) if limit > 1 else (lambda u: 1 / u)
+    errors = []
+
+    def f(u):
+        s = simulate_scaled(row, to_factor(u), target, [target])
+        if s["error"]:
+            errors.append(s["error"])
+            return None
+        return s["xs"][target]
+
+    res = bisect_log_k(f, x_obs, 1.0, max(limit, 1 / limit))
+    factor = None if res["k_needed"] is None else to_factor(res["k_needed"])
+    evaluated = factor if factor is not None else (limit if res["k_status"] == "not_reachable" else 1.0)
+    sim = simulate_scaled(row, evaluated, target, species)
+    if sim["error"]:
+        errors.append(sim["error"])
+    return dict(factor_needed=factor, factor_status=res["k_status"], n_bisect=res["n_sims"],
+                factor_evaluated=evaluated, sim=sim, error="; ".join(errors))
+
+
+def within_uncertainty(factor, status, F):
+    """1/F <= factor <= F; False if the observation is not reachable, None if undetermined."""
+    if status == "not_reachable":
+        return False
+    if factor is None or not F:
+        return None
+    return bool(1 / F <= factor <= F)
+
+
+def existing_record(row, role, frac, unc, res, xbase, obs, target):
+    """Record of the "existing" block. xbase: X of the base run at t_ref for the species of obs.
+    delta_D on GRATIER + target (as the hypotheses) and on GRATIER alone (the other species), and the
+    number of GRATIER species that change by more than 3x, all at factor_evaluated."""
+    F, g = unc if unc else (None, None)
+    rec = dict(reaction=label(row), reac=list(row["reac"]), prod=list(row["prod"]), kida_id=row["id"],
+               role=role, frac=round(float(frac), 4), k_kida=sig(k10(row)), F=F, g=g,
+               factor_needed=sig(res["factor_needed"]), factor_status=res["factor_status"],
+               within_uncertainty=within_uncertainty(res["factor_needed"], res["factor_status"], F),
+               n_bisect=res["n_bisect"], factor_evaluated=sig(res["factor_evaluated"]),
+               X_cand=None, x_ratio=None, D=None, delta_D=None, delta_D_gratier=None, n_gratier_3x=None,
+               curve=None, error=res["error"])
+    xs = res["sim"]["xs"]
+    if xs is not None:
+        d = distance(xs, obs)
+        rec.update(X_cand=sig(xs[target]), x_ratio=sig(xs[target] / obs[target]), D=round(d, 4),
+                   delta_D=round(d - distance(xbase, obs), 4),
+                   delta_D_gratier=round(distance(xs, GRATIER) - distance(xbase, GRATIER), 4),
+                   n_gratier_3x=sum(abs(math.log10(max(xs[s], FLOOR) / max(xbase[s], FLOOR))) > math.log10(3)
+                                    for s in GRATIER if s in xs and s in xbase),
+                   curve=[sig(v) for v in res["sim"]["curve"]])
+    return rec

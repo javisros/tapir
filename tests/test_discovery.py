@@ -6,9 +6,10 @@ import json, math, subprocess, sys, tempfile
 import numpy as np
 from tests._compat import pytest, main
 from tapir.darkcloud import load_rows
-from tapir.discovery import (bisect_log_k, distance, observed_set, capture_feasible, MAX_SIMS, DISCLAIMER)
+from tapir.discovery import (bisect_log_k, distance, observed_set, capture_feasible, kida_uncertainty, row_key,
+                             simulate, simulate_scaled, MAX_SIMS, DISCLAIMER, OK)
 from tapir.flux import kinetic_row
-from tapir.knockout import NET, T_REF, run, X
+from tapir.knockout import NET, T_REF, run, X, label
 from tapir.paths import ROOT
 from tapir.rates import (RateEstimator, ion_h_transfer, ion_flag, ion_h_transfer_validation, H_TRANSFER,
                          ION_H_TRANSFER_MAX, ION_H_TRANSFER_EXCLUDE)
@@ -81,7 +82,7 @@ def exact_k(x_obs, x0=1e-10, power=0.5):
 def test_bisection_converges(x_obs):
     f, calls = synthetic()
     r = bisect_log_k(f, x_obs, 1e-14, 1e-7)
-    assert r["k_status"] == "found" and r["n_sims"] == len(calls) <= MAX_SIMS
+    assert r["k_status"] == OK and r["n_sims"] == len(calls) <= MAX_SIMS
     assert abs(math.log10(r["k_needed"] / exact_k(x_obs))) < 0.05
     assert abs(math.log10(f(r["k_needed"]) / x_obs)) < 0.02
 
@@ -101,42 +102,72 @@ def test_bisection_error():
 
 def test_capture_feasible():
     c = rx("c-C3H2 + C5H -> CH2CCH + C5")                      # neutral-neutral, limit 1e-9
-    assert capture_feasible(c, 5e-10, "found") is True
-    assert capture_feasible(c, 5e-9, "found") is False
+    assert capture_feasible(c, 5e-10, OK) is True
+    assert capture_feasible(c, 5e-9, OK) is False
     assert capture_feasible(c, None, "not_reachable") is False
     assert capture_feasible(c, None, "already_above") is True
     assert capture_feasible(c, None, "error") is None
 
 
+# --- existing reactions -----------------------------------------------------------------------
+
+def test_kida_uncertainty():
+    """F and g are read from the columns after alpha, beta, gamma (first rows of kida.uva.2024)."""
+    unc = kida_uncertainty(NET)
+    assert unc[(1, ("N2", "CR"), ("N", "N"), -9999.0, 9999.0)] == (1.25, 0.0)
+    assert unc[(2, ("H", "CR"), ("H+", "e-"), -9999.0, 9999.0)] == (2.0, 0.0)
+    assert all(row_key(r) in unc for r in ROWS24)
+
+
+def test_factor_one_is_base():
+    """Replacing a reaction by itself times 1 gives the base network."""
+    row = next(r for r in ROWS24 if label(r) == "C + C2H4 -> H + CH2CCH")
+    species = sorted(observed_set("CH2CCH"))
+    base, same = simulate(None, "CH2CCH", species), simulate_scaled(row, 1.0, "CH2CCH", species)
+    assert not base["error"] and not same["error"]
+    assert all(math.isclose(same["xs"][s], base["xs"][s], rel_tol=1e-6, abs_tol=1e-30) for s in base["xs"])
+    lower = simulate_scaled(row, 0.1, "CH2CCH", ["CH2CCH"])
+    assert lower["xs"]["CH2CCH"] < 0.9 * base["xs"]["CH2CCH"]
+
+
 # --- output of scripts.discover ----------------------------------------------------------------
 
-TOP_FIELDS = ("species", "mode", "disclaimer", "config", "observation", "base", "t_yr", "counts", "runtime",
-              "hypotheses")
-HYP_FIELDS = ("rank", "reaction", "reac", "prod", "source", "rationale", "family", "reaction_class", "k",
-              "k_source", "unpaired_flag", "ion_flag", "flux_rank", "dX_pred", "X_target", "x_ratio", "D",
-              "delta_D", "k_needed", "k_status", "k_needed_sims", "capture_max", "capture_feasible", "robust",
-              "literature", "k_lit", "error", "curve")
+TOP_FIELDS = ("species", "mode", "X_obs", "obs_source", "generators", "config", "config2", "X_base", "D_base",
+              "n_generated", "n_no_rate", "n_simulated", "runtime_s", "t", "curve_base", "hypotheses",
+              "existing", "disclaimer")
+CONFIG_FIELDS = ("network", "C_O", "S", "t_ref", "physics")
+HYP_FIELDS = ("rank", "reaction", "reac", "prod", "class", "source", "family", "rationale", "k_source", "k",
+              "dX_flux", "X_cand", "x_ratio", "D", "delta_D", "k_needed", "k_status", "k_max_class",
+              "capture_feasible", "n_bisect", "curve", "robust", "config2", "literature", "lit_run",
+              "unpaired_flag", "ion_flag")
+EXISTING_FIELDS = ("reaction", "role", "frac", "k_kida", "F", "factor_needed", "factor_status",
+                   "within_uncertainty", "delta_D", "delta_D_gratier", "curve")
 
 
 def test_discover_json_fields():
-    """End to end with K = 1 (at most 12 simulations), written to a temporary results directory."""
+    """End to end with K = 1 and one existing reaction per role, in a temporary results directory."""
     with tempfile.TemporaryDirectory() as tmp:
         env = dict(os.environ, TAPIR_RESULTS=tmp, OMP_NUM_THREADS="1")
         subprocess.run([sys.executable, "-m", "scripts.discover", "CH2CCH", "--k", "1", "--top", "1",
-                        "--procs", "1"], cwd=ROOT, env=env, check=True, capture_output=True)
+                        "--procs", "2", "--existing", "1"], cwd=ROOT, env=env, check=True, capture_output=True)
         doc = json.load(open(os.path.join(tmp, "discovery", "CH2CCH.json")))
         assert os.path.exists(os.path.join(tmp, "discovery", "CH2CCH.csv"))
-    assert all(f in doc for f in TOP_FIELDS)
-    assert doc["mode"] == "observation" and doc["disclaimer"] == DISCLAIMER
-    assert doc["observation"]["X_obs"] == 8.7e-9 and doc["config"]["t_ref_yr"] == T_REF
-    assert len(doc["base"]["curve"]) == len(doc["t_yr"])
+    assert all(f in doc for f in TOP_FIELDS) and all(f in doc["config"] for f in CONFIG_FIELDS)
+    assert doc["mode"] == "formation" and doc["disclaimer"] == DISCLAIMER
+    assert doc["X_obs"] == 8.7e-9 and doc["config"]["t_ref"] == T_REF
+    assert len(doc["curve_base"]) == len(doc["t"])
     [h] = doc["hypotheses"]
     assert all(f in h for f in HYP_FIELDS)
-    assert h["source"] == "analogy" and len(h["curve"]) == len(doc["t_yr"])
-    assert h["k_status"] in ("found", "not_reachable", "already_above", "error")
-    assert h["k_needed_sims"] <= MAX_SIMS
-    assert math.isclose(h["x_ratio"], h["X_target"] / doc["observation"]["X_obs"], rel_tol=1e-3)
-    assert math.isclose(h["delta_D"], h["D"] - doc["base"]["D"], abs_tol=2e-4)
+    assert h["source"] == ["analogy"] and len(h["curve"]) == len(doc["t"])
+    assert h["k_status"] in (OK, "not_reachable", "already_above")
+    assert h["n_bisect"] <= MAX_SIMS
+    assert math.isclose(h["x_ratio"], h["X_cand"] / doc["X_obs"], rel_tol=1e-3)
+    assert math.isclose(h["delta_D"], h["D"] - doc["D_base"], abs_tol=2e-4)
+    assert [e["role"] for e in doc["existing"]] == ["formation", "destruction"]
+    for e in doc["existing"]:
+        assert all(f in e for f in EXISTING_FIELDS)
+        assert e["factor_status"] in (OK, "not_reachable", "already_above") and e["n_bisect"] <= MAX_SIMS
+        assert 0 < e["frac"] <= 1 and e["F"] >= 1 and len(e["curve"]) == len(doc["t"])
 
 
 if __name__ == "__main__":
