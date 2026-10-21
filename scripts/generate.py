@@ -2,7 +2,8 @@
 generate.py - Candidate reactions for a target species, without simulation.
 
   python -m scripts.generate CH3CN               top candidates producing CH3CN (nothing hidden)
-  python -m scripts.generate CH3CN --flux        ... re-ranked by flux on the reference network (1 run)
+  python -m scripts.generate CH3CN --flux        ... re-ranked by flux on the reference network (1 run),
+                                                 rates from tapir.rates.RateEstimator
   python -m scripts.generate --cases             rank of each benchmark case's hidden reaction
 """
 import argparse
@@ -11,6 +12,7 @@ from tapir.darkcloud import parse_kida, load_rows
 from tapir.knockout import NET, run, label
 from tapir.generator import Generator, load_cases, rank, BASE_FAMILIES, FAMILIES
 from tapir.flux import FluxScorer
+from tapir.rates import RateEstimator
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
@@ -32,10 +34,11 @@ if __name__ == "__main__":
         cs = Generator(rows24, raw14, families=fams).candidates(a.target)
         print(f"{len(cs)} candidates for {a.target}")
         if a.flux:
-            cs, no_rate = FluxScorer(*run()).score(cs, a.target)
-            print(f"ranked by flux ({no_rate} without a generic rate)")
+            cs, no_rate = FluxScorer(*run()).score(cs, a.target, estimator=RateEstimator(rows24))
+            print(f"ranked by flux ({no_rate} without a rate)")
         for c in cs[:a.top]:
-            extra = f"  dX={c['dX']:.1e}" if a.flux else ""
+            extra = (f"  dX={c['dX']:.1e}  k={c['k']:.1e} [{c['k_source']}]"
+                     f"{'  unpaired: ' + c['unpaired_flag'] if c['unpaired_flag'] else ''}") if a.flux else ""
             print(f"  {c['score']:6.3f}  {c['family']:8s} {label(c)}{extra}")
     else:
         ap.print_help()
