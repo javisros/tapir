@@ -106,7 +106,7 @@ def main(argv=None, literature=None):
         lit.save()
     with open(a.out or a.discovery_json, "w") as fh:
         json.dump(data, fh, indent=1)
-    print(f"\n{lit.stats}\nwritten {a.out or a.discovery_json}; cache {a.cache}")
+    print(f"\n{lit.stats} LLM usage: {dict(getattr(lit._client, 'stats', {}))}\nwritten {a.out or a.discovery_json}; cache {a.cache}")
     return data
 
 

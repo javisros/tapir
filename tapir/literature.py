@@ -28,7 +28,15 @@ scripts.bench_llm: Bond would see the hidden reactions) or when the input is not
 Configuration (.env or environment):
   BOND_MCP_URL       Streamable HTTP endpoint of the Bond MCP server
   BOND_TOKEN         bearer token (VALENCY_TOKEN accepted as an alias)
-  BOND_SEARCH_TOOL   tool to call (default: the first tool whose name contains "search")
+  BOND_SEARCH_TOOL   tool to call (default: semantic_search_papers, else the first tool whose name
+                     contains "semantic", then "search")
+Each reaction is searched with two queries (queries(): plain words, and the short formula-based form
+papers use, e.g. "C + C2H4" or "H + C3H3"); Bond's papers are merged without duplicates and shown to the
+LLM as compact text (title, authors, year, DOI, URL, abstract); the title kept with each reference
+comes from Bond, not from the LLM.
+LLM: if a classification fails on format with reasoning effort "high" (Groq's json_validate_failed
+with an empty generation, systematic on the context questions with gpt-oss), it is retried once with
+"medium" (stats["effort_fallbacks"]).
 The LLM is tapir.llm_client.LLMClient (its own LITELLM_* / TAPIR_LLM_* variables).
 
 KIDA comparison (kida_comparison): k_lit against KIDA at the temperature T of k_lit, with the
@@ -54,7 +62,9 @@ STANCES = ("SUPPORTS", "CONTRADICTS", "NEUTRAL")
 MAX_REFS = 3                                       # refs per reaction
 MAX_ARTICLES = 5                                   # articles per context question
 N_RESULTS = 8                                      # results asked to Bond per search
-MAX_TEXT = 15000                                   # characters of Bond's answer shown to the LLM
+MAX_TEXT = 15000                                   # characters of Bond's answer shown to the LLM (~4k tokens:
+                                                   # Groq on_demand allows 8000 tokens per minute and per request)
+MAX_ABSTRACT = 800                                 # characters of each abstract, so that every paper fits
 K_RTOL = 0.02                                      # k_lit must match a number of the quote within 2 %
 T_LOW = 50.0                                       # K: a k_lit above this is not compared with KIDA
 BENCHMARK_PREFIXES = ("scripts.benchmark_", "scripts.bench_llm")
@@ -67,6 +77,9 @@ NAMES = {"CH2CCH": "propargyl radical", "C2H4": "ethylene", "CH3CCH": "propyne (
          "C": "atomic carbon", "H": "atomic hydrogen", "O": "atomic oxygen", "N": "atomic nitrogen",
          "CCH": "ethynyl radical", "CH3": "methyl radical", "C2H2": "acetylene", "C4H2": "diacetylene",
          "HCO+": "formyl cation", "H3+": "H3+", "HCO": "formyl radical", "HCCCHO": "propynal",
+         "CO": "carbon monoxide", "H2": "molecular hydrogen", "C3": "tricarbon", "c-C3H": "cyclic C3H radical",
+         "C5H": "C5H radical", "HCNH+": "protonated hydrogen cyanide", "c-C3H3+": "cyclopropenyl cation",
+         "l-C3H3+": "propargyl cation", "C3H4+": "C3H4+ cation", "C3H5+": "C3H5+ cation",
          "Photon": "photon (radiative association)", "e-": "electron (dissociative recombination)"}
 
 
@@ -92,6 +105,42 @@ def key_str(row):
     """Canonical key as text: sorted reactants -> sorted products."""
     reac, prod = canonical_key(row)
     return " + ".join(reac) + " -> " + " + ".join(prod)
+
+
+# Formulas as papers write them (isomer-unspecified), for the short query.
+ALIASES = {"CH2CCH": "C3H3", "CH3CCH": "C3H4", "CH2CCH2": "C3H4", "c-C3H2": "C3H2", "l-C3H2": "C3H2",
+           "c-C3H": "C3H", "l-C3H3+": "C3H3+", "c-C3H3+": "C3H3+"}
+
+
+def describe(s):
+    """'C2H4' -> 'ethylene (C2H4)'"""
+    name = NAMES.get(s)
+    return f"{name} ({s})" if name and name != s else s
+
+
+def and_list(xs):
+    return " and ".join(xs) if len(xs) <= 2 else ", ".join(xs[:-1]) + " and " + xs[-1]
+
+
+def query(row):
+    """Bond query in plain words (semantic search does better without KIDA notation)."""
+    reac = [describe(s) for s in row["reac"] if s != "e-"]
+    prod = [describe(s) for s in row["prod"] if s != "Photon"]
+    if "Photon" in row["prod"]:
+        what = f"radiative association of {' with '.join(reac)} forming {and_list(prod)}"
+    elif "e-" in row["reac"]:
+        what = f"dissociative recombination of {and_list(reac)} with electrons producing {and_list(prod)}"
+    else:
+        what = f"gas-phase reaction of {' with '.join(reac)} producing {and_list(prod)}"
+    return what + ": rate coefficient at low temperature"
+
+
+def queries(row):
+    """[plain-words query, short query]: 'C + C2H4 reaction rate constant (atomic carbon with ethylene)'."""
+    reac = [s for s in row["reac"] if s != "e-"]
+    short = (" + ".join(ALIASES.get(s, s) for s in row["reac"]) + " reaction rate constant ("
+             + " with ".join(NAMES.get(s, s) for s in reac) + ")")
+    return [query(row), short]
 
 
 def words(row):
@@ -221,8 +270,10 @@ class BondClient:
                                       clientInfo=dict(name="tapir", version="0.1.0")))
         self._post("notifications/initialized", notify=True)
         tools = self._post("tools/list").get("tools", [])
-        pick = ([t for t in tools if t["name"] == self.tool_name] if self.tool_name
-                else [t for t in tools if "search" in t["name"].lower()] or tools)
+        names = lambda f: [t for t in tools if f(t["name"].lower())]
+        pick = (names(lambda n: n == self.tool_name.lower()) if self.tool_name
+                else names(lambda n: n == "semantic_search_papers") or names(lambda n: "semantic" in n)
+                or names(lambda n: "search" in n) or tools)
         if not pick:
             raise BondError(f"no tool {self.tool_name or 'search'} among {[t['name'] for t in tools]}")
         self.tool = pick[0]
@@ -240,15 +291,61 @@ class BondClient:
             args[nk] = n
         return args
 
-    def search(self, query, n=N_RESULTS):
+    def _call(self, query, n):
+        """(papers, None), or (None, raw text) if the answer is not a list of papers."""
         self.connect()
         res = self._post("tools/call", dict(name=self.tool["name"], arguments=self.arguments(query, n)))
         text = "\n".join(c.get("text", "") for c in res.get("content", []) if c.get("type") == "text")
-        if res.get("structuredContent") is not None:
-            text += "\n" + json.dumps(res["structuredContent"], ensure_ascii=False)
         if res.get("isError"):
             raise BondError(f"tool error: {text[:300]}")
-        return dict(text=text, refs=find_refs(text))
+        papers = paper_list(res.get("structuredContent")) or paper_list(text)
+        if papers is None and res.get("structuredContent") is not None:
+            text += "\n" + json.dumps(res["structuredContent"], ensure_ascii=False)
+        return papers, None if papers is not None else text
+
+    def search(self, query, n=N_RESULTS):
+        """query: a string or a list of strings (papers merged in order, without duplicates)."""
+        papers, raw, seen = [], [], set()
+        for q in ([query] if isinstance(query, str) else query):
+            ps, text = self._call(q, n)
+            if ps is None:
+                raw.append(text)
+            for p in ps or []:
+                k = (p.get("doi") or p.get("url") or p.get("title") or "").lower()
+                if k not in seen:
+                    seen.add(k)
+                    papers.append(p)
+        if raw:                                  # not a list of papers: Bond's raw text
+            text = "\n\n".join(raw + [paper_text(i + 1, p) for i, p in enumerate(papers)])
+            return dict(text=text, refs=find_refs(text), titles={})
+        text = "\n\n".join(paper_text(i + 1, p) for i, p in enumerate(papers)) or "No papers found."
+        titles = {r: p.get("title") or "" for p in papers for r in find_refs(paper_ids(p))}
+        return dict(text=text, refs=find_refs(text), titles=titles)
+
+
+def paper_list(x):
+    """The 'papers' list of a Bond answer (dict or JSON text), or None."""
+    if isinstance(x, str):
+        try:
+            x = json.loads(x)
+        except ValueError:
+            return None
+    papers = x.get("papers") if isinstance(x, dict) else None
+    return [p for p in papers if isinstance(p, dict)] if isinstance(papers, list) else None
+
+
+def paper_ids(p):
+    return " ".join(f"{k.upper()}: {p[k]}" for k in ("doi", "url") if p.get(k))
+
+
+def paper_text(i, p):
+    """One paper of Bond's answer as compact text for the LLM."""
+    authors = p.get("authors") or []
+    authors = ", ".join(authors[:3]) + (" et al." if len(authors) > 3 else "")
+    year = (p.get("first_submitted") or p.get("datestamp") or "")[:4]
+    abstract = p.get("abstract") or ""
+    abstract = abstract[:MAX_ABSTRACT] + (" [...]" if len(abstract) > MAX_ABSTRACT else "")
+    return f"[{i}] {p.get('title', '')}\n{authors} ({year}) {paper_ids(p)}\n{abstract}".strip()
 
 
 # --- LLM classification -------------------------------------------------------------------------
@@ -342,16 +439,17 @@ def validate_articles(a):
     return arts
 
 
-def keep_bond_refs(refs, allowed):
-    """refs: [{ref, same_channel}] -> (those found in Bond's answer, normalised and without duplicates;
-    the refs that are not)"""
+def keep_bond_refs(refs, allowed, titles=None):
+    """refs: [{ref, same_channel}] -> (those found in Bond's answer, normalised and without duplicates,
+    with Bond's title when known; the refs that are not)"""
+    titles = titles or {}
     kept, dropped = {}, []
     for r in refs:
         n = norm_ref(r["ref"])
         if n not in allowed:
             dropped.append(r["ref"])
         elif n not in kept:
-            kept[n] = dict(ref=n, same_channel=r["same_channel"])
+            kept[n] = dict(ref=n, same_channel=r["same_channel"], **({"title": titles[n]} if n in titles else {}))
     return list(kept.values()), dropped
 
 
@@ -404,6 +502,11 @@ def kida_comparison(lit, kida_id, path=NET):
     return out
 
 
+def redact(msg):
+    """Error message without account identifiers (the results go to a public repository)."""
+    return re.sub(r"org_[A-Za-z0-9]+", "org_<redacted>", msg)
+
+
 def today():
     return datetime.date.today().isoformat()
 
@@ -418,7 +521,7 @@ class Literature:
         self.cache = dict(reactions={}, questions={})
         if os.path.exists(cache_path):
             self.cache.update(json.load(open(cache_path)))
-        self.stats = dict(bond_calls=0, llm_calls=0, cached=0, unchecked=0, discarded_refs=0)
+        self.stats = dict(bond_calls=0, llm_calls=0, cached=0, unchecked=0, discarded_refs=0, effort_fallbacks=0)
 
     @property
     def bond(self):
@@ -444,15 +547,25 @@ class Literature:
             self.stats["bond_calls"] += 1
             return self.bond.search(query, N_RESULTS), None
         except Exception as e:                       # BondError, missing configuration, bad JSON...
-            return None, f"Bond: {type(e).__name__}: {e}"[:300]
+            return None, redact(f"Bond: {type(e).__name__}: {e}")[:300]
 
     def _ask(self, prompt, schema, validate):
         """LLM answer, or (None, error)."""
         try:
             self.stats["llm_calls"] += 1
-            return self.client.ask(prompt, schema, validate), None
+            try:
+                return self.client.ask(prompt, schema, validate), None
+            except Exception as e:
+                if type(e).__name__ != "FormatError" or getattr(self.client, "reasoning_effort", None) != "high":
+                    raise
+                self.stats["effort_fallbacks"] += 1
+                self.client.reasoning_effort = "medium"
+                try:
+                    return self.client.ask(prompt, schema, validate), None
+                finally:
+                    self.client.reasoning_effort = "high"
         except Exception as e:                       # FormatError, BudgetExceeded, connection...
-            return None, f"LLM: {type(e).__name__}: {e}"[:300]
+            return None, redact(f"LLM: {type(e).__name__}: {e}")[:300]
 
     def _unchecked(self, query, error):
         self.stats["unchecked"] += 1
@@ -467,18 +580,18 @@ class Literature:
         if not self.refresh and key in self.cache["reactions"]:
             self.stats["cached"] += 1
             return self.cache["reactions"][key]
-        query = f"{label(row)} ({words(row)}) reaction rate coefficient low temperature"
-        found, err = self._search(query)
+        q = queries(row)
+        found, err = self._search(q)
         if err:
-            return self._unchecked(query, err)
+            return self._unchecked(q, err)
         entry = dict(status=NO_EVIDENCE, refs=[], k_lit=None, k_lit_T=None, k_lit_ref=None,
-                     k_lit_same_channel=None, k_lit_quote="", note="", backend="valency-bond", query=query,
+                     k_lit_same_channel=None, k_lit_quote="", note="", backend="valency-bond", query=q,
                      checked=today(), error=None, n_bond_refs=len(found["refs"]), discarded_refs=[])
         if found["refs"]:
             a, err = self._ask(reaction_prompt(row, found["text"]), REACTION_SCHEMA, validate_reaction)
             if err:
-                return self._unchecked(query, err)
-            refs, dropped = keep_bond_refs(a["refs"], set(found["refs"]))
+                return self._unchecked(q, err)
+            refs, dropped = keep_bond_refs(a["refs"], set(found["refs"]), found.get("titles"))
             refs = refs[:MAX_REFS]
             entry.update(status=a["status"], refs=refs, note=a["note"], discarded_refs=dropped)
             k_ref = next((r for r in refs if r["ref"] == norm_ref(a["k_lit_ref"] or "")), None)
@@ -517,7 +630,8 @@ class Literature:
                 r = norm_ref(x["ref"])
                 if r in allowed and r not in seen:
                     seen.add(r)
-                    entry["articles"].append(dict(ref=r, finding=x["finding"], stance=x["stance"]))
+                    entry["articles"].append(dict(ref=r, **({"title": found["titles"][r]} if r in found.get("titles", {}) else {}),
+                                                  finding=x["finding"], stance=x["stance"]))
                 elif r not in allowed:
                     entry["discarded_refs"].append(x["ref"])
             entry["articles"] = entry["articles"][:MAX_ARTICLES]

@@ -1,0 +1,272 @@
+{
+ "reactions": {
+  "HCO+ + c-C3H2 -> CH2CCH + CO+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature found reporting a rate coefficient for c-C3H2 + HCO+ → CH2CCH + CO+.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with formyl cation (HCO+) producing propargyl radical (CH2CCH) and CO+: rate coefficient at low temperature",
+    "C3H2 + HCO+ reaction rate constant (cyclopropenylidene with formyl cation)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 21,
+   "discarded_refs": []
+  },
+  "HCNH+ + c-C3H2 -> CH2CCH + HCN+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No provided references report a measurement or calculation of the rate coefficient for c-C3H2 + HCNH+ → CH2CCH + HCN+.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with protonated hydrogen cyanide (HCNH+) producing propargyl radical (CH2CCH) and HCN+: rate coefficient at low temperature",
+    "C3H2 + HCNH+ reaction rate constant (cyclopropenylidene with protonated hydrogen cyanide)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 18,
+   "discarded_refs": []
+  },
+  "C5H + c-C3H2 -> C5 + CH2CCH": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature was found reporting a measured or computed rate coefficient for the reaction c-C3H2 + C5H → CH2CCH + C5.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with C5H radical (C5H) producing propargyl radical (CH2CCH) and C5: rate coefficient at low temperature",
+    "C3H2 + C5H reaction rate constant (cyclopropenylidene with C5H radical)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 22,
+   "discarded_refs": []
+  },
+  "H3+ + c-C3H2 -> CH2CCH + H2+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature result among the provided references reports a measurement or calculation for the reaction c-C3H2 + H3+ -> CH2CCH + H2+.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with H3+ producing propargyl radical (CH2CCH) and H2+: rate coefficient at low temperature",
+    "C3H2 + H3+ reaction rate constant (cyclopropenylidene with H3+)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 18,
+   "discarded_refs": []
+  },
+  "c-C3H2 + l-C3H3+ -> CH2CCH + c-C3H2+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature among the provided results reports a measured or computed rate coefficient for the reaction c-C3H2 + l-C3H3+ → CH2CCH + c-C3H2+.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with propargyl cation (l-C3H3+) producing propargyl radical (CH2CCH) and c-C3H2+: rate coefficient at low temperature",
+    "C3H2 + C3H3+ reaction rate constant (cyclopropenylidene with propargyl cation)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 20,
+   "discarded_refs": []
+  },
+  "c-C3H2 + l-C3H3+ -> CH2CCH + l-C3H2+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No result among the provided references reports a measurement or calculation of the rate coefficient for the reaction c-C3H2 + l-C3H3+ → CH2CCH + l-C3H2+.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with propargyl cation (l-C3H3+) producing propargyl radical (CH2CCH) and l-C3H2+: rate coefficient at low temperature",
+    "C3H2 + C3H3+ reaction rate constant (cyclopropenylidene with propargyl cation)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 18,
+   "discarded_refs": []
+  },
+  "c-C3H2 + c-C3H3+ -> CH2CCH + c-C3H2+": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No result found for the specific reaction channel.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with cyclopropenyl cation (c-C3H3+) producing propargyl radical (CH2CCH) and c-C3H2+: rate coefficient at low temperature",
+    "C3H2 + C3H3+ reaction rate constant (cyclopropenylidene with cyclopropenyl cation)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 18,
+   "discarded_refs": []
+  },
+  "HCO + c-C3H2 -> CH2CCH + CO": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature among the provided results reports a measurement or calculation of the rate coefficient for the reaction c-C3H2 + HCO -> CH2CCH + CO.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with formyl radical (HCO) producing propargyl radical (CH2CCH) and carbon monoxide (CO): rate coefficient at low temperature",
+    "C3H2 + HCO reaction rate constant (cyclopropenylidene with formyl radical)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 26,
+   "discarded_refs": []
+  },
+  "CH2CCH2 + H -> CH2CCH + H2": {
+   "status": "computed",
+   "refs": [
+    {
+     "ref": "10.1007/s00894-025-06406-8",
+     "same_channel": true,
+     "title": "Mechanism and kinetics of the reaction of atomic hydrogen with allene."
+    },
+    {
+     "ref": "10.1021/jp804510k",
+     "same_channel": true,
+     "title": "Reactions over multiple, interconnected potential wells: unimolecular and bimolecular reactions on a C3H5 potential."
+    }
+   ],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "Computational studies predict rate coefficients for the H + allene abstraction channel (forming H2 + propargyl) but no low‑temperature measurement is reported.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of atomic hydrogen (H) with allene (CH2CCH2) producing molecular hydrogen (H2) and propargyl radical (CH2CCH): rate coefficient at low temperature",
+    "H + C3H4 reaction rate constant (atomic hydrogen with allene)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 26,
+   "discarded_refs": []
+  },
+  "c-C3H + c-C3H2 -> C3 + CH2CCH": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature was found reporting a measured or computed rate coefficient for c‑C3H2 + c‑C3H → CH2CCH + C3.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of cyclopropenylidene (c-C3H2) with cyclic C3H radical (c-C3H) producing propargyl radical (CH2CCH) and tricarbon (C3): rate coefficient at low temperature",
+    "C3H2 + C3H reaction rate constant (cyclopropenylidene with cyclic C3H radical)"
+   ],
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 22,
+   "discarded_refs": []
+  },
+  "C + C2H4 -> CH2CCH + H": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No result provides a measured or computed rate coefficient for the C + C2H4 → H + CH2CCH reaction.",
+   "backend": "valency-bond",
+   "query": "gas-phase reaction of atomic carbon (C) with ethylene (C2H4) producing atomic hydrogen (H) and propargyl radical (CH2CCH): rate coefficient at low temperature",
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 14,
+   "discarded_refs": []
+  },
+  "CH2CCH + H -> CH3CCH + Photon": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature result among the provided references reports a measurement or calculation for the H + CH2CCH → CH3CCH + photon reaction.",
+   "backend": "valency-bond",
+   "query": "radiative association of atomic hydrogen (H) with propargyl radical (CH2CCH) forming propyne (methylacetylene) (CH3CCH): rate coefficient at low temperature",
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 12,
+   "discarded_refs": []
+  },
+  "CH2CCH + H -> CH2CCH2 + Photon": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "No literature among the provided results reports a measured or computed rate coefficient for H + propargyl radical forming allene via radiative association.",
+   "backend": "valency-bond",
+   "query": "radiative association of atomic hydrogen (H) with propargyl radical (CH2CCH) forming allene (CH2CCH2): rate coefficient at low temperature",
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 14,
+   "discarded_refs": []
+  }
+ },
+ "questions": {
+  "Do chemical models underestimate the abundance of the propargyl radical (CH2CCH) in TMC-1, and to what do they attribute it?": {
+   "question": "Do chemical models underestimate the abundance of the propargyl radical (CH2CCH) in TMC-1, and to what do they attribute it?",
+   "status": "found",
+   "articles": [
+    {
+     "ref": "10.3847/1538-4357/acf863",
+     "title": "Astrochemical Modeling of Propargyl Radical Chemistry in TMC-1",
+     "finding": "The three‑phase gas‑grain model still underestimates the observed CH2CCH abundance by about two orders of magnitude, despite increasing it by half an order of magnitude relative to previous networks.",
+     "stance": "NEUTRAL"
+    }
+   ],
+   "backend": "valency-bond",
+   "checked": "2026-10-21",
+   "error": null,
+   "n_bond_refs": 12,
+   "discarded_refs": []
+  }
+ }
+}

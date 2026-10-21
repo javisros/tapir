@@ -100,6 +100,39 @@ def test_guard_accepts_stored_discovery():
 
 # --- classification and anti-invention ---------------------------------------------------------
 
+def test_query_in_plain_words():
+    assert L.query(C_C2H4) == ("gas-phase reaction of atomic carbon (C) with ethylene (C2H4) producing atomic "
+                               "hydrogen (H) and propargyl radical (CH2CCH): rate coefficient at low temperature")
+    assert L.query(dict(reac=["H", "CH2CCH"], prod=["CH3CCH", "Photon"])).startswith(
+        "radiative association of atomic hydrogen (H) with propargyl radical (CH2CCH) forming propyne")
+    assert "->" not in L.query(dict(reac=["C3H5+", "e-"], prod=["CH2CCH", "H", "H"]))
+
+
+def test_short_query_uses_generic_formulas():
+    assert L.queries(C_C2H4)[1] == "C + C2H4 reaction rate constant (atomic carbon with ethylene)"
+    assert L.queries(dict(reac=["H", "CH2CCH"], prod=["CH3CCH", "Photon"]))[1].startswith("H + C3H3 reaction")
+
+
+def test_effort_fallback_on_format_error():
+    """FormatError at reasoning effort "high" -> one retry at "medium", then back to "high"."""
+    class FormatError(Exception):
+        pass
+
+    class Flaky(FakeLLM):
+        reasoning_effort = "high"
+        efforts = []
+
+        def ask(self, prompt, schema, validate):
+            self.efforts.append(self.reasoning_effort)
+            if self.reasoning_effort == "high":
+                raise FormatError("json_validate_failed")
+            return super().ask(prompt, schema, validate)
+    llm = Flaky(answer())
+    x = lit(llm=llm)
+    assert x.check_reaction(C_C2H4, discovery())["status"] == "measured"
+    assert llm.efforts == ["high", "medium"] and llm.reasoning_effort == "high" and x.stats["effort_fallbacks"] == 1
+
+
 def test_measured_with_verified_k():
     e = lit().check_reaction(C_C2H4, discovery())
     assert e["status"] == "measured" and e["refs"] == [ref(DOI_B.lower())]
@@ -162,8 +195,9 @@ def test_bond_failure_gives_unchecked_and_is_not_cached():
 def test_llm_failure_gives_unchecked():
     class Broken(FakeLLM):
         def ask(self, *a):
-            raise RuntimeError("budget")
-    assert lit(llm=Broken(None)).check_reaction(C_C2H4, discovery())["status"] == "unchecked"
+            raise RuntimeError("Rate limit reached in organization `org_01abcXYZ`")
+    e = lit(llm=Broken(None)).check_reaction(C_C2H4, discovery())
+    assert e["status"] == "unchecked" and "org_01abcXYZ" not in e["error"] and "org_<redacted>" in e["error"]
 
 
 # --- cache ---------------------------------------------------------------------------------------
@@ -301,6 +335,34 @@ def test_bond_client_mcp():
     assert methods == ["initialize", "notifications/initialized", "tools/list", "tools/call"]
     assert FakeMCP.seen[-1][1] == "s-1"                                       # session id sent back
     assert FakeMCP.seen[-1][2] == dict(name="search_papers", arguments=dict(query="C + C2H4", max_results=5))
+
+
+def test_bond_papers_compact_with_titles():
+    """semantic_search_papers is preferred; its papers become compact text, titles come from Bond."""
+    papers = dict(papers=[dict(title="Low-T kinetics of C + C2H4", doi=DOI_B, url="https://arxiv.org/abs/9901.00001",
+                               authors=["A", "B", "C", "D"], first_submitted="1999-01-01",
+                               abstract="k = 4.3 x 10^-10 cm3 s-1 at 15 K."),
+                          dict(title="No identifiers", abstract="...")])
+    calls = []
+
+    class Fake(BondClient):
+        def _post(self, method, params=None, notify=False):
+            calls.append((method, params))
+            if method == "tools/list":
+                return dict(tools=[dict(name="search_by_title"), dict(name="semantic_search_papers",
+                            inputSchema=dict(properties=dict(query={}, limit={})))])
+            if method == "tools/call":
+                return dict(content=[dict(type="text", text=json.dumps(papers))], structuredContent=papers)
+            return {}
+    res = Fake("http://x", "t").search(["q", "q2"], 4)
+    assert calls[-1][1] == dict(name="semantic_search_papers", arguments=dict(query="q2", limit=4))
+    assert res["refs"] == [DOI_B.lower(), "https://arxiv.org/abs/9901.00001"]
+    assert res["titles"][DOI_B.lower()] == "Low-T kinetics of C + C2H4" and res["text"].count("Low-T kinetics") == 1
+    assert "A, B, C et al. (1999)" in res["text"]
+    e = lit(FakeBond(text=res["text"])).check_reaction(C_C2H4, discovery())
+    assert e["status"] == "measured" and e["k_lit"] == 4.3e-10
+    bond = FakeBond(text=res["text"]); bond.search = lambda q, n: res
+    assert lit(bond).check_reaction(C_C2H4, discovery())["refs"][0]["title"] == "Low-T kinetics of C + C2H4"
 
 
 def test_bond_client_bad_token_gives_unchecked():
