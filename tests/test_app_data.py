@@ -72,6 +72,94 @@ def test_cases_curves():
             assert all(isinstance(v, (int, float)) and v >= 0 for v in x), (c["case"], k)
 
 
+MANIFEST = os.path.join(DATA, "manifest.json")
+DISCOVERY = "discovery/CH2CCH.json"
+UPSTREAM = "discovery/CH2CCH_upstream.json"
+K_STATUS = {"ok", "not_reachable", "already_above", "error", None}
+LIT_STATUS = {"measured", "proposed", "computed", "no_evidence_found", "unchecked"}
+
+
+def exported(name):
+    """The Discovery tab's JSON if the manifest lists it as exported, else None (absence is valid)."""
+    if name not in json.load(open(MANIFEST))["exported"]:
+        return None
+    return json.load(open(os.path.join(DATA, name)))
+
+
+def check_hypotheses(d):
+    hyps = d["hypotheses"]
+    assert hyps and [h["rank"] for h in hyps] == list(range(1, len(hyps) + 1))
+    for h in hyps:
+        assert " -> " in h["reaction"], h["reaction"]
+        assert set(h["source"]) <= {"analogy", "llm"} and h["source"], h["source"]
+        assert h["k_status"] in K_STATUS, h["k_status"]
+        assert h["capture_feasible"] in (True, False, None)
+        assert h["k_status"] != "ok" or h["k_needed"] > 0
+        assert h.get("literature") is None or h["literature"]["status"] in LIT_STATUS
+        assert h.get("curve") is None or len(h["curve"]) == len(d["t"])
+    assert len(d["curve_base"]) == len(d["t"])
+
+
+def test_discovery_contract():
+    d = exported(DISCOVERY)
+    if d is None:
+        return
+    assert d["search"] == "direct" and d["species"] == "CH2CCH"
+    assert d["X_obs"] > d["X_base"] > 0 and d["x_ratio_base"] > 0
+    assert d["disclaimer"]
+    check_hypotheses(d)
+    for e in d["existing"]:
+        assert {"reaction", "role", "frac", "factor_status"} <= set(e)
+
+
+def test_upstream_contract():
+    d = exported(UPSTREAM)
+    if d is None:
+        return
+    assert d["search"] == "upstream" and d["upstream"]
+    check_hypotheses(d)
+    assert all(h["via"] in d["upstream"] for h in d["hypotheses"])
+    bn = d["bottleneck"]
+    reac = bn["reaction"].split(" -> ")[0].split(" + ")
+    assert any(s in bn["species"] for s in reac)
+    assert all(v["ratio"] >= 0 for v in bn["species"].values())
+    assert isinstance(bn["supply_limited"], bool) and bn["factor"] > 0
+
+
+def test_bench_llm_contract():
+    """Fields of bench_llm_summary.json read by the Generator tab; baselines recomputed from ranks and n."""
+    d = exported("bench_llm_summary.json")
+    if d is None:
+        return
+    b = d["benchmark_b"]
+    for s, m in b["metrics"].items():
+        n = m["n_cases"]
+        assert s in ("analogy", "llm", "union") and n > 0
+        assert 0 <= m["hits@1"] <= m["hits@5"] <= n and 0 <= m["n_recovered"] <= n
+        assert set(m["ranks"]) == set(m["n"]) and len(m["ranks"]) == n
+        rec = [c for c, r in m["ranks"].items() if r is not None]
+        assert m["n_recovered"] == len(rec) and math.isclose(m["recall"], len(rec) / n)
+        h_n = {c: sum(1 / i for i in range(1, m["n"][c] + 1)) / m["n"][c] for c in rec}
+        assert math.isclose(m["random_mrr_end_to_end"], sum(h_n.values()) / n)
+        assert math.isclose(m["MRR"], sum(1 / m["ranks"][c] for c in rec) / n)
+        if rec:
+            assert math.isclose(m["random_mrr_conditional"], sum(h_n.values()) / len(rec))
+            assert math.isclose(m["conditional_mrr"], sum(1 / m["ranks"][c] for c in rec) / len(rec))
+        else:
+            assert m["random_mrr_conditional"] is None and m["conditional_mrr"] is None
+    for c in b["cases"]:
+        assert {"case", "strategy", "hidden_reaction", "hidden_generated"} <= set(c)
+
+
+def test_app_reads_only_app_data():
+    src = open(APP).read()
+    assert "results/" not in src and "networks/" not in src
+    tree = ast.parse(src)
+    mods = {a.name.split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.Import) for a in n.names}
+    mods |= {(n.module or "").split(".")[0] for n in ast.walk(tree) if isinstance(n, ast.ImportFrom)}
+    assert not mods & {"urllib", "requests", "httpx", "socket", "http", "openai"}, mods
+
+
 def test_app_does_not_import_tapir():
     tree = ast.parse(open(APP).read())
     for node in ast.walk(tree):
