@@ -14,3 +14,4 @@ venv/
 .env
 .env.*
 app/__marimo__/
+results/llm_cache/

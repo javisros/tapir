@@ -5,7 +5,10 @@ Configuration of benchmark/cases.json (kida.uva.2024, C/O = 1.2, S = 8e-8, W24_G
 For each case:
   1. knock-out run (every strict equivalent of the hidden reaction removed);
   2. tapir.generator candidates for the target (the hidden set never reaches the generator);
-  3. flux pre-ranking on the knock-out run (tapir.flux), generic rate from capture_guess;
+  3. flux pre-ranking on the knock-out run (tapir.flux) with the rate of tapir.rates.RateEstimator:
+     KIDA class median for neutral + H2 and closed-shell neutral-neutral, computed without the hidden
+     reaction and its equivalents; capture_guess otherwise; k = 0 for neutral candidates that increase
+     the number of unpaired electrons (unpaired_flag, see tapir.rates);
   4. simulate the top K (K=30) by flux, each added alone to the knock-out network;
   5. score = |log10(X_cand / X_base)| + penalty (lower is better), where
      penalty = sum over observed TMC-1 species other than the target (observations.observed) of
@@ -25,6 +28,7 @@ from tapir.knockout import NET, T_REF, run, X, label
 from tapir.observations import observed
 from tapir.generator import Generator, load_cases, rank
 from tapir.flux import FluxScorer, knockout_exclude
+from tapir.rates import RateEstimator
 from tapir.paths import relative, result
 
 OUT = result("benchmark_b.csv")
@@ -97,7 +101,7 @@ if __name__ == "__main__":
         plan, tasks = {}, []
         for (name, h), (scorer, xko) in zip(cases, kos):
             cands = Generator(rows24, raw14, hidden=[h]).candidates(name)
-            ranked, no_rate = scorer.score(cands, name)
+            ranked, no_rate = scorer.score(cands, name, estimator=RateEstimator(rows24, hidden=[h]))
             top = ranked[:a.k]
             plan[name] = dict(h=h, n_gen=len(cands), no_rate=no_rate, top=top, xko=xko,
                               rank_prior=rank(cands, h), rank_flux=rank(ranked, h, key="dX"))
@@ -134,7 +138,8 @@ if __name__ == "__main__":
         for j, c in enumerate(top):
             rows_out.append(dict(case=name, final_rank=j + 1, flux_rank=c["flux_rank"], reaction=label(c),
                                  family=c["family"], prior_score=f"{c['prior']:.3f}",
-                                 k=f"{c['k']:.2e}", dX_pred=f"{c['dX']:.2e}",
+                                 k=f"{c['k']:.2e}", k_source=c["k_source"],
+                                 unpaired_flag=c["unpaired_flag"] or "", dX_pred=f"{c['dX']:.2e}",
                                  X_cand="" if c["X_cand"] is None else f"{c['X_cand']:.3e}",
                                  X_base=f"{xbase[name]:.3e}",
                                  log_err="" if c["log_err"] is None else f"{c['log_err']:.3f}",
