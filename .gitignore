@@ -13,4 +13,5 @@ venv/
 .DS_Store
 .env
 .env.*
+app/__marimo__/
 results/llm_cache/
