@@ -2,3 +2,5 @@ numpy>=1.24
 scipy>=1.10
 matplotlib>=3.6
 pytest>=7   # optional: the tests also run with python -m tests.test_<name>
+openai
+python-dotenv
