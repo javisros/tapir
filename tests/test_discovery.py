@@ -168,6 +168,30 @@ def test_discover_json_fields():
         assert all(f in e for f in EXISTING_FIELDS)
         assert e["factor_status"] in (OK, "not_reachable", "already_above") and e["n_bisect"] <= MAX_SIMS
         assert 0 < e["frac"] <= 1 and e["F"] >= 1 and len(e["curve"]) == len(doc["t"])
+    bn = doc["bottleneck"]
+    assert bn["reaction"] == "C + C2H4 -> H + CH2CCH" and {"C", "C2H4", "CH3"} <= set(bn["species"])
+    assert isinstance(bn["supply_limited"], bool)
+
+
+def test_upstream_mode():
+    """--upstream: candidates produce the precursor, the score is on the target."""
+    with tempfile.TemporaryDirectory() as tmp:
+        env = dict(os.environ, TAPIR_RESULTS=tmp, OMP_NUM_THREADS="1")
+        subprocess.run([sys.executable, "-m", "scripts.discover", "CH2CCH", "--k", "2", "--top", "4",
+                        "--procs", "2", "--no-bisect", "--upstream", "C2H4,CH3"],
+                       cwd=ROOT, env=env, check=True, capture_output=True)
+        doc = json.load(open(os.path.join(tmp, "discovery", "CH2CCH_upstream.json")))
+    assert all(f in doc for f in TOP_FIELDS) and doc["search"] == "upstream" and doc["upstream"] == ["C2H4", "CH3"]
+    assert doc["species"] == "CH2CCH" and doc["existing"] == []
+    hs = doc["hypotheses"]
+    assert {h["via"] for h in hs} == {"C2H4", "CH3"}
+    i_ref = min(range(len(doc["t"])), key=lambda i: abs(doc["t"][i] - T_REF))
+    for h in hs:
+        assert all(f in h for f in HYP_FIELDS + ("via", "n_worse"))
+        assert all(p in h["prod"] for p in h["via"].split("+"))
+        assert "CH2CCH" not in h["prod"]
+        assert math.isclose(h["curve"][i_ref], h["X_cand"], rel_tol=1e-3)          # X_cand is CH2CCH
+        assert math.isclose(h["x_ratio"], h["X_cand"] / doc["X_obs"], rel_tol=1e-3)
 
 
 if __name__ == "__main__":
