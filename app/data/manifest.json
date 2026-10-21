@@ -1,0 +1,10 @@
+{
+ "exported": [
+  "validation_curves.json"
+ ],
+ "missing": [
+  "results/discovery/*.json",
+  "results/bench_llm*.json|csv"
+ ],
+ "note": "missing results are expected until the discovery / LLM pipelines have run"
+}
