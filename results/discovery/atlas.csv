@@ -1,0 +1,9 @@
+species,X_obs,x_ratio_base,diagnosis,main_formation,limiting_reactant,limiting_ratio,x_ratio_scaled,n_candidates,n_simulated,best_x_ratio,n_reachable,n_reachable_clean,best_reaction,best_flags
+CH3OH,1.445439770745928e-09,9.438e-07,other,CH3 + OH- -> CH3OH + e-,OH-,0.5216,0.0004221,0,0,,0,0,,
+CH3CHO,2.6915348039269137e-10,0.001585,supply_limited,CH3CHOH+ + e- -> H + CH3CHO,CH3CHOH+,0.01246,0.01677,161,20,0.001585,0,0,C + CH3OCH2 -> CH + CH3CHO,
+CH3CHCH2,4e-09,0.02164,supply_limited,H + C3H5 -> CH3CHCH2 + Photon,C3H5,0.001159,0.02508,278,20,0.02174,0,0,C3H5 + CH4 -> CH3CHCH2 + CH3,
+CH2CCH,8.7e-09,0.1072,supply_limited,C + C2H4 -> H + CH2CCH,C2H4,0.003119,0.2546,558,20,0.2925,0,0,c-C3H2 + HCO+ -> CH2CCH + CO+,ion_flag=h_transfer+unpaired_flag=increase+ie_flag=wrong_charge_partner
+CH3CCH,1.148153621496884e-08,0.1404,supply_limited,H + CH2CCH -> CH3CCH + Photon,CH2CCH,0.002909,0.3661,482,20,0.1885,0,0,H2 + C3H5+ -> H3+ + CH3CCH,
+HCS+,5.754399373371567e-10,0.1713,supply_limited,CS + HCO+ -> CO + HCS+,CS,0.002259,0.2311,450,20,0.1736,0,0,CS + HCNH+ -> HCS+ + HNC,
+NH3,5.0118723362727144e-08,0.2863,supply_limited,NH4+ + e- -> H + NH3,NH4+,0.001602,0.4091,485,20,0.4118,0,0,H2 + NH4+ -> H3+ + NH3,
+CH3C4H,1.4791083881682072e-09,0.322,rate_limited,C5H5+ + e- -> H + CH3C4H,C5H5+,0.005885,1.123,0,0,,0,0,,
