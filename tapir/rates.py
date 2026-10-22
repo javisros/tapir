@@ -31,6 +31,18 @@ rearrangements (46, mostly C-chain growth with H loss: C2H2 + C4H+ -> H + C6H2+)
 by the ion (24: H2 + CN+ -> H + HCN+). Only one (CO + H- -> HCO + e-) moves the H from the ion to the
 neutral, as the candidates do; the count is by electron parity, not by mechanism.
 
+Wrong charge partner (ie_flag): ion-neutral with a single cationic product D+ and neutral products
+N: if IE(D) - min IE(N) > IE_MARGIN (1 eV), the charge would sit on the other product (c-C3H2 + HCO+ ->
+CH2CCH + CO+: IE(CO) 14.0 vs IE(CH2CCH) 8.7 eV) -> ie_flag = "wrong_charge_partner". IE from
+data/ionization_energies.csv (NIST Chemistry WebBook only, see its header); applied only when IE(D) and
+at least one IE(N) are in the table (a missing IE(N) could only lower the minimum, so it cannot clear
+a flag). Validation on kida.uva.2024 (ie_validation: ion-neutral, gamma = 0 for Kooij rows,
+k(10 K) > 1e-11; 3511 reactions, 1518 with both IE): 103 break the rule (6.8 %), above the 2 % threshold
+(IE_WRONG_PARTNER_MAX), so candidates are flagged only and keep their rate. Exceptions: 44 dissociative
+charge transfer from He+ (24.6 eV, three products: SiO + He+ -> He + Si + O+) and 59 of 1178 two-product
+reactions (5.0 %), mostly heavy-atom rearrangements and C-chain growth (CO2 + N+ -> NO + CO+,
+C4 + C+ -> C + C4+, CH3OH + C+ -> HCO + CH3+).
+
 A neutral species is barrierless-reactive if ANY of:
   (i)   odd number of valence electrons (radical);
   (ii)  it is in REACTIVE_EVEN_ELECTRON (triplet ground state or reactive singlet);
@@ -41,6 +53,7 @@ A neutral species is barrierless-reactive if ANY of:
 Medians and evidence are both computed on the rows passed in (kida.uva.2024 as darkcloud.load_rows
 prepares it: entry valid at 10 K, duplicates removed), at the temperature the model uses (row Teff).
 """
+import csv
 import numpy as np
 from . import chem
 from .chem import canonical_key
@@ -48,11 +61,13 @@ from .darkcloud import W24_GAS, rate
 from .flux import estimate_row
 from .generator import VALENCE
 from .knockout import reaction_class, PHYSICAL
+from .paths import IONIZATION_ENERGIES
 
 NEUTRAL_H2 = "neutral + H2"
 CLOSED_SHELL = "closed-shell neutral-neutral"
 KIDA_MEDIAN, UNPAIRED_INCREASE, ION_H_TRANSFER = "kida_class_median", "unpaired_increase", "ion_h_transfer"
-INCREASE, H_TRANSFER = "increase", "h_transfer"
+IE_WRONG_PARTNER = "ie_wrong_partner"
+INCREASE, H_TRANSFER, WRONG_CHARGE_PARTNER = "increase", "h_transfer", "wrong_charge_partner"
 
 # Even-electron neutrals that react without a barrier. Editable.
 REACTIVE_EVEN_ELECTRON = {
@@ -95,6 +110,13 @@ UNPAIRED_EXEMPT = ("dissociative recombination",)
 # reactions. Measured 5.4 % (see the docstring) -> flag only.
 ION_H_TRANSFER_MAX = 0.02
 ION_H_TRANSFER_EXCLUDE = False
+# Wrong charge partner: IE(D) above the lowest IE of the neutral products by more than IE_MARGIN (eV).
+# Excluded only if rarer than IE_WRONG_PARTNER_MAX among fast KIDA ion-neutral reactions. Measured 6.8 %
+# (see the docstring) -> flag only.
+IE_MARGIN = 1.0
+IE_WRONG_PARTNER_MAX = 0.02
+IE_WRONG_PARTNER_EXCLUDE = False
+_IE = {}
 
 
 def electrons(s):
@@ -164,6 +186,45 @@ def ion_h_transfer_validation(rows):
     return len(fast), [r for r in fast if ion_h_transfer(r)]
 
 
+def ionization_energies(path=IONIZATION_ENERGIES):
+    """{neutral species: IE in eV} from the NIST table (comment lines start with #), read once."""
+    if path not in _IE:
+        with open(path) as fh:
+            _IE[path] = {r["species"]: float(r["ie_eV"]) for r in csv.DictReader(l for l in fh if not l.startswith("#"))}
+    return _IE[path]
+
+
+def charge_partner(r, ie=None):
+    """(D, IE(D), N, IE(N)) for an ion-neutral reaction with one cationic product D+ and neutral
+    products, N the neutral product of lowest known IE; None if the rule does not apply."""
+    ie = ionization_energies() if ie is None else ie
+    if reaction_class(r) != "ion-neutral":
+        return None
+    cations = [s for s in r["prod"] if chem.charge(s) > 0]
+    neutrals = [s for s in r["prod"] if chem.charge(s) == 0 and s not in chem.PLACEHOLDERS]
+    if len(cations) != 1 or chem.charge(cations[0]) != 1 or not neutrals:
+        return None
+    d, known = cations[0][:-1], [(ie[s], s) for s in neutrals if s in ie]
+    if d not in ie or not known:
+        return None
+    ie_n, n = min(known)
+    return d, ie[d], n, ie_n
+
+
+def ie_flag(r, ie=None):
+    """WRONG_CHARGE_PARTNER if IE(D) - min IE(N) > IE_MARGIN (see charge_partner), else None."""
+    p = charge_partner(r, ie)
+    return WRONG_CHARGE_PARTNER if p and p[1] - p[3] > IE_MARGIN else None
+
+
+def ie_validation(rows, ie=None):
+    """Ion-neutral reactions of `rows` without barrier (gamma = 0 for Kooij rows; ionpol rows kept),
+    with k(10 K) > EVIDENCE_K and the rule applicable -> (number of reactions, [those flagged])."""
+    fast = [r for r in rows if reaction_class(r) == "ion-neutral"
+            and not (r["formula"] == 3 and r["C"] != 0) and k10(r) > EVIDENCE_K and charge_partner(r, ie)]
+    return len(fast), [r for r in fast if ie_flag(r, ie)]
+
+
 def capture_max(r):
     """Capture limit of the reaction's class, or None if the class has none."""
     return CAPTURE_MAX.get(reaction_class(r))
@@ -227,4 +288,6 @@ class RateEstimator:
             row, src = dict(row, A=0.0), UNPAIRED_INCREASE
         if row is not None and ION_H_TRANSFER_EXCLUDE and ion_h_transfer(cand):
             row, src = dict(row, A=0.0), ION_H_TRANSFER
+        if row is not None and IE_WRONG_PARTNER_EXCLUDE and ie_flag(cand):
+            row, src = dict(row, A=0.0), IE_WRONG_PARTNER
         return row, src

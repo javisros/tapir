@@ -1,0 +1,98 @@
+# Ionization energies (eV) of neutral KIDA species, NIST Chemistry WebBook (SRD 69), gas-phase ion energetics.
+# Retrieved 2026-10-22. method: 'evaluated' = NIST IE (evaluated); otherwise the median of the
+# NIST determinations, used only if they agree within 1 eV. Isomers resolved by exact NIST name; species without a
+# sourced value are absent (the wrong-charge-partner rule is not applied to them).
+species,ie_eV,method,nist_name,nist_id,cas,url
+C,11.2603,evaluated,Carbon,C7440440,7440-44-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440440&Units=SI&Mask=20
+C2,11.4,evaluated,Dicarbon,C12070154,12070-15-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12070154&Units=SI&Mask=20
+C2H2,11.4,evaluated,Acetylene,C74862,74-86-2,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74862&Units=SI&Mask=20
+C2H3,8.7,median of 3 determinations (spread 0.70 eV),Vinyl radical,C2669898,2669-89-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2669898&Units=SI&Mask=20
+C2H4,10.5138,evaluated,Ethylene,C74851,74-85-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74851&Units=SI&Mask=20
+C2H5,8.34,median of 9 determinations (spread 0.41 eV),Ethyl radical,C2025561,2025-56-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2025561&Units=SI&Mask=20
+C2H6,11.52,evaluated,Ethane,C74840,74-84-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74840&Units=SI&Mask=20
+C2N2,13.37,evaluated,Cyanogen,C460195,460-19-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C460195&Units=SI&Mask=20
+C4,12.57,median of 2 determinations (spread 0.06 eV),Tetracarbon,C12184804,12184-80-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12184804&Units=SI&Mask=20
+C4H2,10.17,median of 7 determinations (spread 0.20 eV),"1,3-Butadiyne",C460128,460-12-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C460128&Units=SI&Mask=20
+C4N,11.9,median of 1 determinations (spread 0.00 eV),Cyanopropynylidene,C129066337,129066-33-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C129066337&Units=SI&Mask=20
+C5,12.5,median of 2 determinations (spread 0.40 eV),Carbon,C12595823,12595-82-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12595823&Units=SI&Mask=20
+C6H2,9.5,median of 3 determinations (spread 0.13 eV),"1,3,5-Hexatriyne",C3161997,3161-99-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C3161997&Units=SI&Mask=20
+C8H2,9.09,median of 1 determinations (spread 0.00 eV),"1,3,5,7-Octatetrayne",C6165964,6165-96-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C6165964&Units=SI&Mask=20
+CCH,11.61,evaluated,Ethynyl radical,C2122487,2122-48-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2122487&Units=SI&Mask=20
+CCN,12,median of 1 determinations (spread 0.00 eV),"Methylidyne, cyano-",C4120029,4120-02-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C4120029&Units=SI&Mask=20
+CCP,10.9,median of 1 determinations (spread 0.00 eV),Dicarbon phosphide,C12602390,12602-39-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12602390&Units=SI&Mask=20
+CH,10.64,evaluated,Methylidyne,C3315375,3315-37-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C3315375&Units=SI&Mask=20
+CH2,10.396,evaluated,Methylene,C2465567,2465-56-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2465567&Units=SI&Mask=20
+CH2CCH,8.675,median of 2 determinations (spread 0.01 eV),Propargyl radical,C2932787,2932-78-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2932787&Units=SI&Mask=20
+CH3,9.84,evaluated,Methyl radical,C2229074,2229-07-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2229074&Units=SI&Mask=20
+CH3CCH,10.36,evaluated,Propyne,C74997,74-99-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74997&Units=SI&Mask=20
+CH3CHO,10.229,evaluated,Acetaldehyde,C75070,75-07-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C75070&Units=SI&Mask=20
+CH3CN,12.2,evaluated,Acetonitrile,C75058,75-05-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C75058&Units=SI&Mask=20
+CH3NH2,8.9,evaluated,Methylamine,C74895,74-89-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74895&Units=SI&Mask=20
+CH3OCH3,10.025,evaluated,Dimethyl ether,C115106,115-10-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C115106&Units=SI&Mask=20
+CH3OH,10.84,evaluated,Methyl Alcohol,C67561,67-56-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C67561&Units=SI&Mask=20
+CH4,12.61,evaluated,Methane,C74828,74-82-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74828&Units=SI&Mask=20
+CN,13.598,evaluated,Cyano radical,C2074875,2074-87-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2074875&Units=SI&Mask=20
+CO,14.014,evaluated,Carbon monoxide,C630080,630-08-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C630080&Units=SI&Mask=20
+CO2,13.777,evaluated,Carbon dioxide,C124389,124-38-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C124389&Units=SI&Mask=20
+CP,10.5,median of 1 determinations (spread 0.00 eV),Carbon monophosphide,C12326851,12326-85-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12326851&Units=SI&Mask=20
+CS,11.33,evaluated,Carbon monosulfide,C2944050,2944-05-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2944050&Units=SI&Mask=20
+CS2,10.073,evaluated,Carbon disulfide,C75150,75-15-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C75150&Units=SI&Mask=20
+Cl,12.9676,evaluated,"Chlorine, atomic",C22537151,22537-15-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C22537151&Units=SI&Mask=20
+ClO,10.89,evaluated,Monochlorine monoxide,C14989301,14989-30-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C14989301&Units=SI&Mask=20
+F,17.4228,evaluated,"Fluorine, atomic",C14762948,14762-94-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C14762948&Units=SI&Mask=20
+Fe,7.9024,evaluated,Iron,C7439896,7439-89-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7439896&Units=SI&Mask=20
+H,13.5984,evaluated,"Hydrogen, atomic",C12385136,12385-13-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12385136&Units=SI&Mask=20
+H2,15.4259,evaluated,Hydrogen,C1333740,1333-74-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C1333740&Units=SI&Mask=20
+H2CCN,10.15,median of 4 determinations (spread 1.00 eV),Cyanomethyl radical,C2932823,2932-82-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2932823&Units=SI&Mask=20
+H2CCO,9.617,evaluated,Ketene,C463514,463-51-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C463514&Units=SI&Mask=20
+H2CO,10.88,evaluated,Formaldehyde,C50000,50-00-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C50000&Units=SI&Mask=20
+H2CS,9.357,median of 6 determinations (spread 0.44 eV),Thioformaldehyde,C865361,865-36-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C865361&Units=SI&Mask=20
+H2O,12.621,evaluated,Water,C7732185,7732-18-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7732185&Units=SI&Mask=20
+H2S,10.457,evaluated,Hydrogen sulfide,C7783064,7783-06-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7783064&Units=SI&Mask=20
+HC3N,11.62,evaluated,Propiolonitrile,C1070719,1070-71-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C1070719&Units=SI&Mask=20
+HCN,13.6,evaluated,Hydrogen cyanide,C74908,74-90-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C74908&Units=SI&Mask=20
+HCNO,10.83,median of 1 determinations (spread 0.00 eV),Fulminic acid,C506854,506-85-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C506854&Units=SI&Mask=20
+HCO,8.12,evaluated,Formyl radical,C2597446,2597-44-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2597446&Units=SI&Mask=20
+HCOOH,11.33,evaluated,Formic acid,C64186,64-18-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C64186&Units=SI&Mask=20
+HCP,10.79,median of 1 determinations (spread 0.00 eV),Methinophosphide,C6829523,6829-52-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C6829523&Units=SI&Mask=20
+HCS,7.412,median of 1 determinations (spread 0.00 eV),Thioformyl radical,C36058283,36058-28-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C36058283&Units=SI&Mask=20
+HCl,12.744,evaluated,Hydrogen chloride,C7647010,7647-01-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7647010&Units=SI&Mask=20
+HF,16.03,evaluated,hydrogen fluoride,C7664393,7664-39-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664393&Units=SI&Mask=20
+HNC,12.5,median of 1 determinations (spread 0.00 eV),Hydrogen isocyanide,C6914074,6914-07-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C6914074&Units=SI&Mask=20
+HNCO,11.595,evaluated,Isocyanic acid,C75138,75-13-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C75138&Units=SI&Mask=20
+HNO,10.1,median of 1 determinations (spread 0.00 eV),Nitrosyl hydride,C14332286,14332-28-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C14332286&Units=SI&Mask=20
+HOCO,8.343,median of 2 determinations (spread 0.29 eV),Hydrocarboxyl radical,C2564865,2564-86-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C2564865&Units=SI&Mask=20
+HS,10.422,evaluated,Mercapto radical,C13940211,13940-21-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13940211&Units=SI&Mask=20
+He,24.5874,evaluated,Helium,C7440597,7440-59-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440597&Units=SI&Mask=20
+Mg,7.64624,evaluated,Magnesium,C7439954,7439-95-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7439954&Units=SI&Mask=20
+N,14.5341,evaluated,"Nitrogen, atomic",C17778880,17778-88-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C17778880&Units=SI&Mask=20
+N2,15.581,evaluated,Nitrogen,C7727379,7727-37-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7727379&Units=SI&Mask=20
+NH,13.1,median of 4 determinations (spread 0.69 eV),Imidogen,C13774920,13774-92-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13774920&Units=SI&Mask=20
+NH3,10.07,evaluated,Ammonia,C7664417,7664-41-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7664417&Units=SI&Mask=20
+NO,9.2642,evaluated,Nitric oxide,C10102439,10102-43-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C10102439&Units=SI&Mask=20
+NO2,9.586,evaluated,Nitrogen dioxide,C10102440,10102-44-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C10102440&Units=SI&Mask=20
+NS,9.36,median of 2 determinations (spread 0.98 eV),Mononitrogen monosulfide,C12033566,12033-56-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12033566&Units=SI&Mask=20
+Na,5.13908,evaluated,Sodium,C7440235,7440-23-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440235&Units=SI&Mask=20
+O,13.6181,evaluated,"Oxygen, atomic",C17778802,17778-80-2,https://webbook.nist.gov/cgi/cbook.cgi?ID=C17778802&Units=SI&Mask=20
+O2,12.0697,evaluated,Oxygen,C7782447,7782-44-7,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7782447&Units=SI&Mask=20
+O2H,11.35,evaluated,Hydroperoxy radical,C3170830,3170-83-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C3170830&Units=SI&Mask=20
+OCS,11.18,evaluated,Carbonyl sulfide,C463581,463-58-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C463581&Units=SI&Mask=20
+OH,13.017,evaluated,Hydroxyl radical,C3352576,3352-57-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C3352576&Units=SI&Mask=20
+P,10.4867,evaluated,Phosphorus,C7723140,7723-14-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7723140&Units=SI&Mask=20
+PH,10.1745,median of 2 determinations (spread 0.05 eV),Phosphinidene,C13967141,13967-14-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13967141&Units=SI&Mask=20
+PH2,9.835,median of 4 determinations (spread 0.14 eV),Phosphino radical,C13765430,13765-43-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13765430&Units=SI&Mask=20
+PN,11.88,evaluated,Phosphorus mononitride,C17739478,17739-47-8,https://webbook.nist.gov/cgi/cbook.cgi?ID=C17739478&Units=SI&Mask=20
+S,10.36,evaluated,Sulfur,C7704349,7704-34-9,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7704349&Units=SI&Mask=20
+S2,9.356,evaluated,Sulfur dimer,C23550450,23550-45-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C23550450&Units=SI&Mask=20
+SO,10.294,evaluated,Sulfur monoxide,C13827322,13827-32-2,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13827322&Units=SI&Mask=20
+SO2,12.349,evaluated,Sulfur dioxide,C7446095,7446-09-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7446095&Units=SI&Mask=20
+Si,8.15169,evaluated,Silicon,C7440213,7440-21-3,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7440213&Units=SI&Mask=20
+SiC,9.1,median of 2 determinations (spread 0.20 eV),silicon carbide,C409212,409-21-2,https://webbook.nist.gov/cgi/cbook.cgi?ID=C409212&Units=SI&Mask=20
+SiH,7.96,median of 6 determinations (spread 0.38 eV),Silylidyne,C13774942,13774-94-2,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13774942&Units=SI&Mask=20
+SiH3,8.135,evaluated,Silyl radical,C13765441,13765-44-1,https://webbook.nist.gov/cgi/cbook.cgi?ID=C13765441&Units=SI&Mask=20
+SiH4,11,evaluated,Silane,C7803625,7803-62-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C7803625&Units=SI&Mask=20
+SiNC,8.7,median of 1 determinations (spread 0.00 eV),Silicon monocyanide,C29210660,29210-66-0,https://webbook.nist.gov/cgi/cbook.cgi?ID=C29210660&Units=SI&Mask=20
+SiO,11.49,evaluated,silicon monoxide,C10097286,10097-28-6,https://webbook.nist.gov/cgi/cbook.cgi?ID=C10097286&Units=SI&Mask=20
+SiS,10.53,median of 1 determinations (spread 0.00 eV),Silicon monosulfide,C12504415,12504-41-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C12504415&Units=SI&Mask=20
+c-C3H2,9.15,median of 1 determinations (spread 0.00 eV),Cyclopropenylidene,C16165405,16165-40-5,https://webbook.nist.gov/cgi/cbook.cgi?ID=C16165405&Units=SI&Mask=20
+l-C3H2,10.43,median of 1 determinations (spread 0.00 eV),Propadienylidene,C60731104,60731-10-4,https://webbook.nist.gov/cgi/cbook.cgi?ID=C60731104&Units=SI&Mask=20

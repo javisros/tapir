@@ -203,7 +203,7 @@ def hypothesis(c, sim, xbase, obs, target):
     rec = dict(reaction=label(c), reac=list(c["reac"]), prod=list(c["prod"]), **{"class": reaction_class(c)},
                source=list(c.get("source", ["analogy"])), family=c.get("family"), rationale=rationale(c),
                prior_score=c.get("score"), k_source=c["k_source"], k=sig(c["k"]),
-               unpaired_flag=c.get("unpaired_flag"), ion_flag=c.get("ion_flag"), flux_rank=c["flux_rank"],
+               unpaired_flag=c.get("unpaired_flag"), ion_flag=c.get("ion_flag"), ie_flag=c.get("ie_flag"), flux_rank=c["flux_rank"],
                via=c.get("via"), dX_flux=sig(c["dX"]), X_cand=None, x_ratio=None, D=None, delta_D=None,
                n_worse=None,
                k_needed=None, k_status=None, k_max_class=capture_max(c), capture_feasible=None, n_bisect=None,

@@ -13,6 +13,8 @@ NETWORKS = {"2014": NET_2014, "2024": NET_2024}
 RESULTS = os.environ.get("TAPIR_RESULTS", os.path.join(ROOT, "results"))
 BENCHMARK = os.environ.get("TAPIR_BENCHMARK", os.path.join(ROOT, "benchmark"))
 CASES = os.path.join(BENCHMARK, "cases.json")
+DATA_DIR = os.path.join(ROOT, "data")
+IONIZATION_ENERGIES = os.path.join(DATA_DIR, "ionization_energies.csv")
 
 
 def result(name):

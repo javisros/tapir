@@ -43,7 +43,7 @@ from tapir.generator import Generator
 from tapir.generator_llm import LLMGenerator, N_CONTEXT, SCHEMA, CACHE_DIR
 from tapir.llm_client import FormatError
 from tapir.knockout import NET, EL, T_REF, run, X, label
-from tapir.rates import RateEstimator, ion_flag
+from tapir.rates import RateEstimator, ion_flag, ie_flag
 from tapir.paths import RESULTS, relative
 from scripts.knockout_demo import budget
 
@@ -51,7 +51,7 @@ GENERATORS = ("analogy", "llm")
 TOKENS_PER_CHAR = 0.62          # dry-run fallback: prompt tokens / characters of the first cached answer
 COMPLETION_TOKENS = (2000, 8000)  # dry-run range per call (~2200 measured at the default reasoning effort)
 CSV_FIELDS = ("rank", "reaction", "via", "source", "family", "class", "k", "k_source", "unpaired_flag",
-              "ion_flag", "flux_rank", "dX_flux", "X_cand", "x_ratio", "D", "delta_D", "n_worse", "k_needed",
+              "ion_flag", "ie_flag", "flux_rank", "dX_flux", "X_cand", "x_ratio", "D", "delta_D", "n_worse", "k_needed",
               "k_status", "n_bisect", "k_max_class", "capture_feasible", "error")
 
 
@@ -160,7 +160,7 @@ def upstream_candidates(gens, precursors, scorer, estimator, k):
     for p in precursors:
         cands = candidates(gens, p)
         for c in cands:
-            c["ion_flag"] = ion_flag(c)
+            c["ion_flag"], c["ie_flag"] = ion_flag(c), ie_flag(c)
         ranked, no_rate = scorer.score(cands, p, estimator=estimator)
         live = [c for c in ranked if c["k"] > 0]
         n["generated"] += len(cands); n["no_rate"] += no_rate; n["k_zero"] += len(ranked) - len(live)
@@ -221,7 +221,7 @@ if __name__ == "__main__":
     else:
         cands = candidates(gens, target)
         for c in cands:
-            c["ion_flag"] = ion_flag(c)
+            c["ion_flag"], c["ie_flag"] = ion_flag(c), ie_flag(c)
         ranked, no_rate = scorer.score(cands, target, estimator=RateEstimator(rows24))
         live = [c for c in ranked if c["k"] > 0]
         top = live[:a.k]
@@ -320,7 +320,7 @@ if __name__ == "__main__":
               f"x_ratio={h['x_ratio'] or 0:8.2e} k={h['k']:.1e} [{h['k_source']}] "
               f"k_needed={h['k_needed'] or '-'} ({h['k_status'] or '-'}, feasible={h['capture_feasible']}) "
               f"worse={h['n_worse']} {h['reaction']}  {'via ' + h['via'] if h['via'] else ''} "
-              f"{h['unpaired_flag'] or ''} {h['ion_flag'] or ''}")
+              f"{h['unpaired_flag'] or ''} {h['ion_flag'] or ''} {h['ie_flag'] or ''}")
     for e in existing:
         print(f" {e['role']:11s} {100 * e['frac']:5.1f}%  F={e['F']} g={e['g']}  factor={e['factor_needed']} "
               f"({e['factor_status']}, within F: {e['within_uncertainty']})  dD={e['delta_D']} "
