@@ -991,10 +991,15 @@ def _(APP_DIR, IN_BROWSER, RAW_URL, atlas, atlas_view, discovery, discovery_view
     _atlas_rows = (atlas or {}).get("species") or []
     _n_supply = sum(s.get("supply", {}).get("diagnosis") == "supply_limited" for s in _atlas_rows)
 
+    # molab copies repo files into the browser as text, which corrupts binaries: check the PNG signature.
     _logo_path = APP_DIR / "assets" / "tapir-mark.png"
     try:
-        _logo_src = "data:image/png;base64," + base64.b64encode(_logo_path.read_bytes()).decode()
+        _logo_bytes = _logo_path.read_bytes()
     except OSError:
+        _logo_bytes = b""
+    if _logo_bytes.startswith(b"\x89PNG"):
+        _logo_src = "data:image/png;base64," + base64.b64encode(_logo_bytes).decode()
+    else:
         _logo_src = f"{RAW_URL}/assets/tapir-mark.png" if IN_BROWSER else None
     _logo = (f"<img src='{_logo_src}' alt='TAPIR logo' style='width:108px;height:108px;object-fit:contain;flex:none'>"
              if _logo_src else "")
