@@ -3,6 +3,8 @@
   "validation_curves.json",
   "discovery/CH2CCH.json",
   "discovery/CH2CCH_upstream.json",
+  "discovery/atlas.json",
+  "discovery/chem_review.json",
   "bench_llm.csv.json",
   "bench_llm_summary.json"
  ],

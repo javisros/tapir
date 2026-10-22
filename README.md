@@ -54,9 +54,9 @@ reports what it cannot explain.
    classifies what Bond returns (measured, proposed, computed or no evidence found). References that
    do not appear in Bond's text are dropped.
 
-The Marimo app (`app/tapir_app.py`) shows the validation cases, the CH₂CCH hypotheses and the
-analogy-vs-LLM comparison. It reads precomputed data only and needs neither the networks nor the
-`tapir` package.
+The Marimo app (`app/tapir_app.py`) shows the validation cases, the CH₂CCH hypotheses, their chemical
+review and robustness check, the TMC-1 discrepancy atlas, and the analogy-vs-LLM comparison. It reads
+precomputed data only and needs neither the networks nor the `tapir` package.
 
 ## Results
 

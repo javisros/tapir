@@ -34,11 +34,13 @@ def _(Path, json, mo):
     validation, validation_error = load_json("validation_curves.json")
     discovery, discovery_error = load_json("discovery/CH2CCH.json")
     upstream, upstream_error = load_json("discovery/CH2CCH_upstream.json")
+    atlas, atlas_error = load_json("discovery/atlas.json")
+    chem_review, chem_review_error = load_json("discovery/chem_review.json")
     # Optional until the LLM benchmark has been exported: absence is a placeholder, not an error.
     bench_summary, bench_error = (load_json("bench_llm_summary.json") if (DATA_DIR / "bench_llm_summary.json").exists()
                                   else (None, None))
-    return (bench_error, bench_summary, discovery, discovery_error, upstream, upstream_error, validation,
-            validation_error)
+    return (atlas, atlas_error, bench_error, bench_summary, chem_review, chem_review_error, discovery,
+            discovery_error, upstream, upstream_error, validation, validation_error)
 
 
 @app.cell
@@ -174,7 +176,7 @@ def _(case_picker, case_result, case_view, global_view, mo, validation, validati
 
 
 @app.cell
-def _(mo, plt):
+def _(chem_review, mo, plt):
     DISCLAIMER = "Ranked hypotheses — not confirmed reactions."
     MOTTO = "LLM proposes. Code verifies. Physics decides."
     NO_EVIDENCE = ("No supporting evidence found in the literature search; this does not prove that no "
@@ -188,8 +190,10 @@ def _(mo, plt):
     K_SOURCE_LABELS = {"capture_guess": "generic estimate for its reaction class"}
     DROP_LABELS = {"not_conserved": "not balanced", "already_in_network": "already in the network",
                    "unknown_species": "unknown species", "no_target": "do not make the target"}
+    REVIEW_LABELS = {"implausible": "Rejected", "plausible": "Plausible", "uncertain": "Uncertain"}
     LLM_COLOR = "#7b5ea7"
     SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
+    REVIEW_BY_REACTION = {r["reaction"]: r for r in (chem_review or {}).get("reactions") or []}
 
     def sci(v, digits=2):
         if v is None:
@@ -256,14 +260,19 @@ def _(mo, plt):
         base, x = d.get("x_ratio_base"), h.get("x_ratio")
         return None if x is None else (f"{x:.2f}" if base is None else f"{base:.2f} → {x:.2f}")
 
+    def review_label(h):
+        r = REVIEW_BY_REACTION.get(h.get("reaction"))
+        return "Not reviewed" if r is None else REVIEW_LABELS.get(r.get("verdict"), r.get("verdict", "–"))
+
     def hypotheses_table(d, hyps, upstream=False):
         sp, base = d.get("species", "target"), d.get("x_ratio_base")
         if upstream:
-            lines = ["| Rank | Reaction | Feeds precursor | ΔD | Physical feasibility |", "|---:|:---|:---|---:|:---|"]
+            lines = ["| Rank | Reaction | Feeds precursor | ΔD | Physical feasibility | Chemical review |",
+                     "|---:|:---|:---|---:|:---|:---|"]
         else:
             ratio_head = f"{sp} model / observed" + (f" (base {base:.2f})" if base is not None else "")
-            lines = [f"| Rank | Reaction | Source | {ratio_head} | ΔD | Physical feasibility |",
-                     "|---:|:---|:---|---:|---:|:---|"]
+            lines = [f"| Rank | Reaction | Source | {ratio_head} | ΔD | Physical feasibility | Chemical review |",
+                     "|---:|:---|:---|---:|---:|:---|:---|"]
         for h in hyps:
             row = [str(h["rank"]), f"`{rxn(h['reaction'])}`"]
             if upstream:
@@ -271,7 +280,7 @@ def _(mo, plt):
             else:
                 x = h.get("x_ratio")
                 row += [source_badge(h), "–" if x is None else f"{x:.2f}"]
-            row += [signed(h.get("delta_D")), feasibility(d, h)[0]]
+            row += [signed(h.get("delta_D")), feasibility(d, h)[0], review_label(h)]
             lines.append("| " + " | ".join(row) + " |")
         return mo.md("\n".join(lines))
 
@@ -414,9 +423,76 @@ def _(mo, plt):
         if s != "unchecked":
             add("Literature note", cell(lit.get("note") or ""))
             add("References", "<br>".join(ref_link(r) for r in lit.get("refs") or []))
+        review = REVIEW_BY_REACTION.get(h.get("reaction"))
+        if review is not None:
+            add("Chemical review", f"**{review_label(h)}** <small>(team chemist)</small>")
+            add("Chemical reason", cell(review.get("reason") or ""))
+            refs = review.get("refs") or []
+            add("Chemical-review references", "<br>".join(f"[{cell(ref)}](https://doi.org/{ref})" for ref in refs))
         table = mo.md("| | |\n|:---|:---|\n" + "\n".join(rows))
         plot = plot_hypothesis(d, h)
         return mo.vstack([table] + ([plot] if plot is not None else []), gap=0.75)
+
+    def robustness_section(d):
+        """Comparison of the stored CH2CCH run with the second model configuration."""
+        c2, b1, b2 = d.get("config2"), d.get("bottleneck"), d.get("bottleneck_config2")
+        if not (c2 and b1 and b2):
+            return None
+        reaction = b1.get("reaction")
+        share1 = next((e.get("frac") for e in d.get("existing") or [] if e.get("reaction") == reaction), None)
+        share2 = next((e.get("frac") for e in c2.get("main_formation") or [] if e.get("reaction") == reaction), None)
+
+        def row(label, cfg, ratio, share, bn, reachable):
+            gain = bn["X_target_scaled"] / bn["X_target_base"]
+            limiting = min(bn.get("species") or {}, key=lambda s: bn["species"][s]["ratio"], default=None)
+            left = bn["species"][limiting]["ratio"] if limiting else None
+            share_text = "–" if share is None else f"{share:.0%}"
+            limiting_text = "–" if limiting is None else f"`{limiting}` at {left:.1%}"
+            return (f"| {label} | {cfg.get('C_O', '–'):g} | {sci(cfg.get('S'), 2)} | "
+                    f"{cfg.get('t_ref', 0) / 1e6:g} | {ratio:.3f} | "
+                    f"{share_text} | {gain:.2f}× | {limiting_text} | {reachable} |")
+
+        lines = [
+            "| Model configuration | C/O | S | t_ref [Myr] | Model / observed | Main-route share | Target with route ×1000 | Limiting supply left | Reachable hypotheses |",
+            "|:---|---:|---:|---:|---:|---:|---:|:---|---:|",
+            row("Reference", d.get("config") or {}, d["x_ratio_base"], share1, b1, d.get("n_reachable", 0)),
+            row("Second", c2, c2["x_ratio_base"], share2, b2, c2.get("n_reachable", 0)),
+        ]
+        robust = c2.get("n_robust", 0)
+        total = len(d.get("hypotheses") or [])
+        same = b1.get("supply_limited") and b2.get("supply_limited") and not d.get("n_reachable") and not c2.get("n_reachable")
+        conclusion = ("**The diagnosis survives the second configuration:** the main route exhausts its limiting "
+                      "precursor and no tested hypothesis reaches the observation below its capture limit."
+                      if same else "The second configuration changes part of the diagnosis; inspect the comparison below.")
+        return mo.vstack([
+            mo.md("<div style='font-size:1.15rem;font-weight:600'>Does the conclusion depend on the model configuration?</div>"),
+            mo.callout(mo.md(conclusion), kind="success" if same else "warn"),
+            mo.md("\n".join(lines)),
+            mo.md(f"<small>{robust}/{total} hypotheses move the target closer to the observation in both settings, "
+                  "but this is not enough to make them physically reachable. The second setting uses more sulphur "
+                  "and an earlier scoring time.</small>"),
+        ], gap=0.6)
+
+    def chemical_review_section():
+        if chem_review is None:
+            return None
+        reactions = chem_review.get("reactions") or []
+        rejected = sum(r.get("verdict") == "implausible" for r in reactions)
+        direct = sum(r.get("file") == "CH2CCH" for r in reactions)
+        upstream = len(reactions) - direct
+        lines = ["| Candidate | Search | Verdict | Reason |", "|:---|:---|:---|:---|"]
+        for r in reactions:
+            where = "Direct" if r.get("file") == "CH2CCH" else "Upstream"
+            lines.append(f"| `{rxn(r['reaction'])}` | {where} | {REVIEW_LABELS.get(r['verdict'], r['verdict'])} | "
+                         f"{cell(r['reason'])} |")
+        return mo.vstack([
+            mo.md("<div style='font-size:1.15rem;font-weight:600'>Chemical review</div>"),
+            mo.callout(mo.md(f"**{rejected} of {len(reactions)} reviewed candidates are chemically implausible** "
+                             f"({direct} direct and {upstream} upstream). The automatic physics screen is necessary, "
+                             "but a favorable model score alone is not chemical evidence."), kind="warn"),
+            mo.accordion({f"Why the {len(reactions)} candidates were rejected": mo.md("\n".join(lines))}),
+            mo.md(f"<small>{chem_review.get('reviewer', '')}. Energetic estimates are approximate.</small>"),
+        ], gap=0.6)
 
     def upstream_section(up, d):
         sp, x_obs = d.get("species", "the target"), d.get("X_obs")
@@ -468,8 +544,9 @@ def _(mo, plt):
                                    "so no literature status is shown here.</small>"))
         return mo.vstack(parts, gap=0.75)
 
-    return (DISCLAIMER, MOTTO, detail_view, feasibility, hypotheses_table, lit_status, llm_spotlight, rxn, sci,
-            signed, source_key, table_caption, upstream_section, verdict)
+    return (DISCLAIMER, MOTTO, chemical_review_section, detail_view, feasibility, hypotheses_table, lit_status,
+            llm_spotlight, robustness_section, rxn, sci, signed, source_key, table_caption, upstream_section,
+            verdict)
 
 
 @app.cell
@@ -483,8 +560,9 @@ def _(discovery, mo, rxn, source_key):
 
 
 @app.cell
-def _(DISCLAIMER, detail_view, discovery, discovery_error, hypotheses_table, hypothesis_picker, llm_spotlight,
-      mo, sci, source_key, table_caption, upstream, upstream_error, upstream_section, verdict):
+def _(DISCLAIMER, chem_review_error, chemical_review_section, detail_view, discovery, discovery_error,
+      hypotheses_table, hypothesis_picker, llm_spotlight, mo, robustness_section, sci, source_key,
+      table_caption, upstream, upstream_error, upstream_section, verdict):
     _banner = mo.md(f"<div style='padding:0.35rem 0.75rem;border-left:3px solid #8a8984;opacity:0.85'>"
                     f"<b>{DISCLAIMER}</b></div>")
     if discovery is None:
@@ -519,8 +597,19 @@ def _(DISCLAIMER, detail_view, discovery, discovery_error, hypotheses_table, hyp
             + (f", simulated the {_d['n_simulated']} with the largest flux" if _d.get("n_simulated") else "")
             + f" and ranked them by how much closer they bring the model to the observations."
         )
+        _with_rate = (_d.get("n_generated", 0) - _d.get("n_no_rate", 0) - _d.get("n_k_zero", 0))
+        _funnel = mo.hstack([
+            mo.stat(str(_d.get("n_generated", "–")), label="Generated", bordered=True,
+                    caption="analogy + LLM"),
+            mo.stat(str(_with_rate), label="With an estimated rate", bordered=True,
+                    caption="after rate and radical checks"),
+            mo.stat(str(_d.get("n_simulated", "–")), label="Simulated", bordered=True,
+                    caption="largest estimated flux"),
+            mo.stat(str(_d.get("n_reachable", "–")), label="Physically reachable", bordered=True,
+                    caption="at or below the capture limit"),
+        ], widths="equal", gap=0.5)
         _llm_only = next((h for h in _hyps if source_key(h) == "llm"), None)
-        _parts = [_intro, mo.hstack(_stats, widths="equal", gap=0.5), _banner, _search,
+        _parts = [_intro, mo.hstack(_stats, widths="equal", gap=0.5), _banner, _search, _funnel,
                   mo.md(f"**Top 5 direct hypotheses** for {_sp}"), hypotheses_table(_d, _hyps[:5]),
                   table_caption(_d), verdict(_d)]
         if _llm_only is not None:
@@ -532,6 +621,15 @@ def _(DISCLAIMER, detail_view, discovery, discovery_error, hypotheses_table, hyp
             _parts.append(upstream_section(upstream, _d))
         else:
             _parts.append(mo.callout(mo.md(upstream_error), kind="neutral", title="Upstream data not available"))
+        _robustness = robustness_section(_d)
+        if _robustness is not None:
+            _parts.append(_robustness)
+        _review = chemical_review_section()
+        if _review is not None:
+            _parts.append(_review)
+        elif chem_review_error:
+            _parts.append(mo.callout(mo.md(chem_review_error), kind="neutral",
+                                     title="Chemical review not available"))
         _parts.append(_banner)
         discovery_view = mo.vstack(_parts, gap=1)
     return (discovery_view,)
@@ -723,14 +821,148 @@ def _(MOTTO, bench_error, bench_summary, discovery, feasibility, lit_status, mo,
 
 
 @app.cell
-def _(discovery_view, generator_view, mo, validation_view):
+def _(atlas, mo):
+    atlas_picker = None
+    if atlas is not None and atlas.get("species"):
+        _options = {s["species"]: s["species"] for s in atlas["species"]}
+        atlas_picker = mo.ui.dropdown(options=_options, value=next(iter(_options)), label="Species")
+    return (atlas_picker,)
+
+
+@app.cell
+def _(atlas, atlas_error, atlas_picker, mo, plt, rxn, sci):
+    DIAGNOSIS_LABELS = {"supply_limited": "Supply-limited", "rate_limited": "Rate-limited", "other": "Other"}
+    DIAGNOSIS_COLORS = {"supply_limited": "#2a78d6", "rate_limited": "#eb6834", "other": "#777570"}
+
+    def _ratio(v):
+        return f"{v:.2g}" if v >= 1e-3 else f"{v:.1e}"
+
+    def _atlas_plot(data):
+        rows = sorted(data["species"], key=lambda s: s["x_ratio_base"])
+        xmin = min(s["x_ratio_base"] for s in rows) / 3
+        fig, ax = plt.subplots(figsize=(9.5, 5.0), dpi=110)
+        for i, s in enumerate(rows):
+            diagnosis = s["supply"]["diagnosis"]
+            color = DIAGNOSIS_COLORS[diagnosis]
+            ax.hlines(i, xmin, s["x_ratio_base"], color=color, lw=4, alpha=0.55)
+            ax.scatter(s["x_ratio_base"], i, color=color, s=55, zorder=3,
+                       label=DIAGNOSIS_LABELS[diagnosis])
+            ax.annotate(_ratio(s["x_ratio_base"]), (s["x_ratio_base"], i), xytext=(6, 0),
+                        textcoords="offset points", va="center", fontsize=8)
+        ax.axvline(1 / 3, color="#8a8984", ls="--", lw=1, label="3× below observation")
+        ax.axvline(1, color="#52514e", lw=1)
+        ax.set_xscale("log")
+        ax.set_xlim(xmin, 2)
+        ax.set_yticks(range(len(rows)), [s["species"] for s in rows])
+        ax.set_xlabel("Model / observed abundance (1 = observation matched)")
+        ax.grid(True, axis="x", which="major", color="#e6e5e1", lw=0.8)
+        for side in ("top", "right"):
+            ax.spines[side].set_visible(False)
+        handles, labels = ax.get_legend_handles_labels()
+        unique = dict(zip(labels, handles))
+        ax.legend(unique.values(), unique.keys(), frameon=False, fontsize=9, loc="lower right")
+        fig.tight_layout()
+        html = mo.as_html(fig)
+        plt.close(fig)
+        return html
+
+    def _atlas_table(data):
+        lines = ["| Species | Model / observed | Deficit | Diagnosis | Main formation route | Runs short of | Clean reachable |",
+                 "|:---|---:|---:|:---|:---|:---|---:|"]
+        for s in sorted(data["species"], key=lambda x: x["x_ratio_base"]):
+            sup, ratio = s["supply"], s["x_ratio_base"]
+            limiting = f"`{sup['limiting_reactant']}`" if sup["diagnosis"] == "supply_limited" else "–"
+            lines.append(f"| `{s['species']}` | {_ratio(ratio)} | {1 / ratio:,.0f}× | "
+                         f"{DIAGNOSIS_LABELS[sup['diagnosis']]} | `{rxn(sup['reaction'])}` | {limiting} | "
+                         f"{s['n_reachable_clean']} |")
+        return mo.md("\n".join(lines))
+
+    def _atlas_detail(s):
+        sup = s["supply"]
+        diagnosis = sup["diagnosis"]
+        factor = sup.get("factor", 1)
+        if diagnosis == "supply_limited":
+            explanation = (f"Multiplying the main formation route by {factor:g} raises `{s['species']}` only "
+                           f"{sup['target_gain']:.2g}× because `{sup['limiting_reactant']}` falls to "
+                           f"{sup['limiting_ratio']:.1%} of its original abundance.")
+            kind = "info"
+        elif diagnosis == "rate_limited":
+            explanation = (f"Multiplying the main route by {factor:g} raises the target above the observation "
+                           f"(model / observed = {sup['x_ratio_scaled']:.2f}); its rate is the leading issue in "
+                           "this gas-phase test.")
+            kind = "success"
+        else:
+            explanation = (f"The faster main route reaches only {_ratio(sup['x_ratio_scaled'])} of the observation, "
+                           "without the severe precursor exhaustion used to diagnose supply limitation. This test "
+                           "does not isolate a single gas-phase cause.")
+            kind = "warn"
+        best = s.get("best")
+        if best is None:
+            best_text = "No candidate was available with an estimated gas-phase rate."
+        else:
+            reach = ("It is physically reachable below the capture limit."
+                     if best.get("capture_feasible") is True else
+                     "It is not physically reachable below the capture limit.")
+            best_text = (f"Best simulated candidate: `{rxn(best['reaction'])}`, taking model / observed from "
+                         f"{_ratio(s['x_ratio_base'])} to {_ratio(best['x_ratio'])}. {reach}")
+        return mo.vstack([
+            mo.hstack([
+                mo.stat(_ratio(s["x_ratio_base"]), label="Model / observed", bordered=True,
+                        caption=f"{1 / s['x_ratio_base']:,.0f}× below observation"),
+                mo.stat(str(s["n_candidates"]), label="Candidates generated", bordered=True),
+                mo.stat(str(s["n_simulated"]), label="Candidates simulated", bordered=True),
+                mo.stat(str(s["n_reachable_clean"]), label="Reachable and unflagged", bordered=True),
+            ], widths="equal", gap=0.5),
+            mo.callout(mo.md(f"**{DIAGNOSIS_LABELS[diagnosis]}:** {explanation}"), kind=kind),
+            mo.md(f"Main route: `{rxn(sup['reaction'])}` "
+                  f"({s['main_formation_frac']:.0%} of modeled formation).  \n{best_text}"),
+        ], gap=0.6)
+
+    _intro = mo.md(
+        "<div style='font-size:0.8rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;"
+        "opacity:0.6'>Atlas</div>"
+        "<div style='font-size:1.3rem;font-weight:600'>Is CH₂CCH an isolated discrepancy?</div>"
+    )
+    if atlas is None:
+        atlas_view = mo.vstack([_intro, mo.callout(mo.md(atlas_error), kind="danger",
+                                                   title="Atlas data not available")])
+    else:
+        _rows = atlas.get("species") or []
+        _supply = sum(s["supply"]["diagnosis"] == "supply_limited" for s in _rows)
+        _clean = sum(s.get("n_reachable_clean", 0) for s in _rows)
+        _selected = next(s for s in _rows if s["species"] == atlas_picker.value)
+        atlas_view = mo.vstack([
+            _intro,
+            mo.md("TAPIR applied the same analogy, simulation, capture-limit and chemical-flag pipeline to every "
+                  "TMC-1 species that the reference model underproduces by more than 3×."),
+            mo.hstack([
+                mo.stat(str(len(_rows)), label="Underproduced species", bordered=True),
+                mo.stat(f"{_supply}/{len(_rows)}", label="Supply-limited", bordered=True),
+                mo.stat(str(_clean), label="Reachable unflagged candidates", bordered=True,
+                        caption="across all atlas species"),
+            ], widths="equal", gap=0.5),
+            _atlas_plot(atlas),
+            _atlas_table(atlas),
+            mo.md("<small>Supply-limited means that making the main formation reaction 1000× faster exhausts a "
+                  "reactant below 10% while the target remains underproduced. “Clean” excludes candidates flagged "
+                  "for proton/charge transfer, unpaired-electron growth or charge transfer toward the higher-"
+                  "ionization-energy product.</small>"),
+            mo.md("**Inspect one species**"),
+            atlas_picker,
+            _atlas_detail(_selected),
+        ], gap=1)
+    return (atlas_view,)
+
+
+@app.cell
+def _(atlas_view, discovery_view, generator_view, mo, validation_view):
     HEADER = mo.md(
         "<span style='font-size:1.6rem;font-weight:700;letter-spacing:0.05em'>TAPIR</span> &nbsp; "
         "<span style='opacity:0.75'>Tracking Absent Pathways in Interstellar Reactions</span>  \n"
         "<small style='opacity:0.6'>Finding missing chemistry in interstellar reaction networks.</small>"
     )
     mo.vstack([HEADER, mo.ui.tabs({"Validation": validation_view, "Discovery": discovery_view,
-                                   "Generator": generator_view})], gap=0.5)
+                                   "Atlas": atlas_view, "Generator": generator_view})], gap=0.5)
     return
 
 

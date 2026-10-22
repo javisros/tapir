@@ -75,6 +75,8 @@ def test_cases_curves():
 MANIFEST = os.path.join(DATA, "manifest.json")
 DISCOVERY = "discovery/CH2CCH.json"
 UPSTREAM = "discovery/CH2CCH_upstream.json"
+ATLAS = "discovery/atlas.json"
+CHEM_REVIEW = "discovery/chem_review.json"
 K_STATUS = {"ok", "not_reachable", "already_above", "error", None}
 LIT_STATUS = {"measured", "proposed", "computed", "no_evidence_found", "unchecked"}
 
@@ -110,6 +112,8 @@ def test_discovery_contract():
     check_hypotheses(d)
     for e in d["existing"]:
         assert {"reaction", "role", "frac", "factor_status"} <= set(e)
+    assert d["config2"]["n_reachable"] >= 0 and d["bottleneck_config2"]["supply_limited"] in (True, False)
+    assert all(isinstance(h["robust"], bool) and h["config2"] for h in d["hypotheses"])
 
 
 def test_upstream_contract():
@@ -124,6 +128,33 @@ def test_upstream_contract():
     assert any(s in bn["species"] for s in reac)
     assert all(v["ratio"] >= 0 for v in bn["species"].values())
     assert isinstance(bn["supply_limited"], bool) and bn["factor"] > 0
+
+
+def test_atlas_contract():
+    d = exported(ATLAS)
+    if d is None:
+        return
+    assert d["species"] and d["settings"]["under"] > 0
+    for s in d["species"]:
+        assert s["x_ratio_base"] < d["settings"]["under"]
+        assert 0 <= s["n_reachable_clean"] <= s["n_reachable"] <= s["n_simulated"]
+        supply = s["supply"]
+        assert supply["diagnosis"] in {"supply_limited", "rate_limited", "other"}
+        assert supply["reaction"] and supply["factor"] > 0
+
+
+def test_chemical_review_contract():
+    d = exported(CHEM_REVIEW)
+    if d is None:
+        return
+    assert d["reviewer"] and d["summary"] and d["reactions"]
+    discovery_reactions = {
+        name.removeprefix("discovery/").removesuffix(".json"): {h["reaction"] for h in exported(name)["hypotheses"]}
+        for name in (DISCOVERY, UPSTREAM)
+    }
+    for r in d["reactions"]:
+        assert r["verdict"] in {"implausible", "plausible", "uncertain"}
+        assert r["reaction"] in discovery_reactions[r["file"]]
 
 
 def test_bench_llm_contract():

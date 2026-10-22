@@ -248,6 +248,25 @@
    "error": null,
    "n_bond_refs": 14,
    "discarded_refs": []
+  },
+  "C2H2 + CH3 -> CH2CCH + H2": {
+   "status": "no_evidence_found",
+   "refs": [],
+   "k_lit": null,
+   "k_lit_T": null,
+   "k_lit_ref": null,
+   "k_lit_same_channel": null,
+   "k_lit_quote": "",
+   "note": "None of the provided references report a measurement or calculation of the CH3 + C2H2 → CH2CCH + H2 channel, especially at low temperatures.",
+   "backend": "valency-bond",
+   "query": [
+    "gas-phase reaction of methyl radical (CH3) with acetylene (C2H2) producing propargyl radical (CH2CCH) and molecular hydrogen (H2): rate coefficient at low temperature",
+    "CH3 + C2H2 reaction rate constant (methyl radical with acetylene)"
+   ],
+   "checked": "2026-10-22",
+   "error": null,
+   "n_bond_refs": 29,
+   "discarded_refs": []
   }
  },
  "questions": {
