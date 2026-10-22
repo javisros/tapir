@@ -4,3 +4,4 @@ matplotlib>=3.6
 pytest>=7   # optional: the tests also run with python -m tests.test_<name>
 openai
 python-dotenv
+marimo

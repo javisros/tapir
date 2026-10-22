@@ -10,13 +10,11 @@ a dark-cloud model and ranks them by how well they explain the abundances observ
 
 > **Ranked hypotheses, not confirmed reactions.**
 
-<!-- TODO: uncomment when figure.png exists.
 ![TAPIR overview](figure.png)
 
-**Figure.** (A) The TAPIR pipeline, from candidate generation to the literature check.
-(B) CH₂CCH abundance over time: base model, best hypothesis and TMC-1 observation.
-(C) Analogy vs. LLM vs. union on the knock-out benchmark (Hits@1, MRR), with the random baseline.
--->
+**Figure.** (A) From 565 candidate reactions to none that survives.
+(B) CH₂CCH: the bottleneck is C₂H₄ supply, not a missing reaction.
+(C) Atlas: model/observed abundance for the 8 species under-predicted by more than 3x, by diagnosis.
 
 ## At a glance
 
