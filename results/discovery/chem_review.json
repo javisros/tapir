@@ -1,0 +1,88 @@
+{
+ "reviewer": "chemical review by the team chemist, assisted (energetics from standard thermochemical tables; approximate)",
+ "summary": "No candidate survives chemical review. In this gas-phase model the main CH2CCH route is limited by C2H4 supply; closing the deficit in the gas phase would need more C2H4 or a secondary route (CCH + CH3) ~1000x faster than KIDA's uncertainty allows. Missing grain chemistry is the candidate explanation (hypothesis).",
+ "reactions": [
+  {
+   "reaction": "c-C3H2 + HCO+ -> CH2CCH + CO+",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "charge left on CO (IE ~14 eV vs ~8.7 eV for C3H3), endothermic by several eV; real channel is proton transfer to c-C3H3+ + CO.",
+   "refs": []
+  },
+  {
+   "reaction": "c-C3H2 + HCNH+ -> CH2CCH + HCN+",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "same reason (IE HCN ~13.6 eV); real channel c-C3H3+ + HCN.",
+   "refs": []
+  },
+  {
+   "reaction": "CH3 + C2H2 -> CH2CCH + H2",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "at low temperature the reaction is dominated by addition-stabilization to CH3C2H2, not C3H3 + H2; negligible at 10 K.",
+   "refs": [
+    "10.1063/1.467510"
+   ]
+  },
+  {
+   "reaction": "c-C3H2 + C5H -> CH2CCH + C5",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "requires breaking the strong C5-H bond; very likely endothermic.",
+   "refs": []
+  },
+  {
+   "reaction": "c-C3H2 + H3+ -> CH2CCH + H2+",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "forming H2+ (IE ~15.4 eV) is strongly endothermic; real channel c-C3H3+ + H2.",
+   "refs": []
+  },
+  {
+   "reaction": "H + CH2CCH2 -> H2 + CH2CCH",
+   "file": "CH2CCH",
+   "verdict": "implausible",
+   "reason": "at 10 K: studied computationally (H + allene, C3H5 surface), but H-atom abstraction has an activation barrier.",
+   "refs": [
+    "10.1007/s00894-025-06406-8",
+    "10.1021/jp804510k"
+   ]
+  },
+  {
+   "reaction": "C2H4+ + CO -> C2H4 + CO+",
+   "file": "CH2CCH_upstream",
+   "verdict": "implausible",
+   "reason": "charge transfer to a species with higher ionization energy than C2H4 (~10.5 eV); endothermic by several eV.",
+   "refs": []
+  },
+  {
+   "reaction": "C2H4+ + H2 -> C2H4 + H2+",
+   "file": "CH2CCH_upstream",
+   "verdict": "implausible",
+   "reason": "charge transfer to a species with higher ionization energy than C2H4 (~10.5 eV); endothermic by several eV.",
+   "refs": []
+  },
+  {
+   "reaction": "C2H4+ + N2 -> C2H4 + N2+",
+   "file": "CH2CCH_upstream",
+   "verdict": "implausible",
+   "reason": "charge transfer to a species with higher ionization energy than C2H4 (~10.5 eV); endothermic by several eV.",
+   "refs": []
+  },
+  {
+   "reaction": "C2H4+ + H -> C2H4 + H+",
+   "file": "CH2CCH_upstream",
+   "verdict": "implausible",
+   "reason": "charge transfer to a species with higher ionization energy than C2H4 (~10.5 eV); endothermic by several eV.",
+   "refs": []
+  },
+  {
+   "reaction": "CH3+ + N2 -> CH3 + N2+",
+   "file": "CH2CCH_upstream",
+   "verdict": "implausible",
+   "reason": "charge transfer to a species with higher ionization energy than CH3 (~9.8 eV); endothermic by several eV.",
+   "refs": []
+  }
+ ]
+}
