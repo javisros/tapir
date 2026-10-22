@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.10"
+# dependencies = ["marimo", "matplotlib"]
+# ///
 import marimo
 
 __generated_with = "0.25.2"
@@ -17,18 +21,29 @@ def _():
 
 @app.cell
 def _(Path, json, mo):
-    # Self-contained: only precomputed files in app/data/ (python scripts/export_app_data.py), never tapir.
-    DATA_DIR = (mo.notebook_dir() or Path(__file__).resolve().parent) / "data"
+    import sys
+
+    # Self-contained: only precomputed files in app/ (python scripts/export_app_data.py), never tapir.
+    APP_DIR = mo.notebook_dir() or Path(__file__).resolve().parent
+    # In the browser (molab, WebAssembly) a file missing next to the notebook is fetched from GitHub instead.
+    IN_BROWSER = sys.platform == "emscripten"
+    RAW_URL = "https://raw.githubusercontent.com/javisros/tapir/main/app"
     EXPORT_HINT = "Run `python scripts/export_app_data.py` from the repository root, then reload this app."
+
+    def read_text(rel):
+        path = APP_DIR / rel
+        if path.exists() or not IN_BROWSER:
+            return path.read_text()
+        from pyodide.http import open_url
+        return open_url(f"{RAW_URL}/{rel}").read()
 
     def load_json(name):
         """(data, error message): a missing or unreadable file gives a message, never a traceback."""
-        path = DATA_DIR / name
         try:
-            return json.loads(path.read_text()), None
+            return json.loads(read_text(f"data/{name}")), None
         except FileNotFoundError:
             return None, f"`app/data/{name}` was not found. {EXPORT_HINT}"
-        except (OSError, ValueError) as e:
+        except Exception as e:      # OSError, ValueError, or a browser fetch error (JsException)
             return None, f"`app/data/{name}` could not be read ({e}). {EXPORT_HINT}"
 
     validation, validation_error = load_json("validation_curves.json")
@@ -37,10 +52,11 @@ def _(Path, json, mo):
     atlas, atlas_error = load_json("discovery/atlas.json")
     chem_review, chem_review_error = load_json("discovery/chem_review.json")
     # Optional until the LLM benchmark has been exported: absence is a placeholder, not an error.
-    bench_summary, bench_error = (load_json("bench_llm_summary.json") if (DATA_DIR / "bench_llm_summary.json").exists()
+    bench_summary, bench_error = (load_json("bench_llm_summary.json")
+                                  if IN_BROWSER or (APP_DIR / "data" / "bench_llm_summary.json").exists()
                                   else (None, None))
-    return (atlas, atlas_error, bench_error, bench_summary, chem_review, chem_review_error, discovery,
-            discovery_error, upstream, upstream_error, validation, validation_error)
+    return (APP_DIR, IN_BROWSER, RAW_URL, atlas, atlas_error, bench_error, bench_summary, chem_review,
+            chem_review_error, discovery, discovery_error, upstream, upstream_error, validation, validation_error)
 
 
 @app.cell
@@ -56,7 +72,7 @@ def _(mo, validation):
 
 @app.cell
 def _(mo, plt, validation):
-    COLORS = dict(base="#52514e", knockout="#eb6834", recovered="#2a78d6")
+    COLORS = dict(base="#16253d", knockout="#d8694f", recovered="#2f6fed")
     LABELS = dict(base="Full network", knockout="Missing reaction", recovered="TAPIR re-adds pathway (generic rate)")
     STYLES = dict(base=dict(lw=3.0, ls="-", alpha=0.45), knockout=dict(lw=2.0, ls="--"),
                   recovered=dict(lw=2.0, ls="-"))
@@ -140,17 +156,14 @@ def _(mo, plt, validation):
         ], gap=0.75)
 
     def global_view():
+        # The headline hits@1 lives in the app's summary row; here only the metric behind it.
         m = validation["metrics"]
-        hero = mo.md(
-            f"<div style='font-size:2.6rem;font-weight:700;line-height:1.1'>{m['hits']['1']} / {m['n_cases']}</div>"
-            "<div>hidden reactions ranked <b>#1</b></div>"
-        )
-        secondary = mo.md(
-            f"**MRR {m['mrr']:.2f}** &nbsp; vs &nbsp; **{m['random_mrr']:.2f}** random baseline  \n"
+        return mo.md(
+            f"**{m['hits']['1']} of {m['n_cases']}** hidden reactions ranked #1 · "
+            f"**MRR {m['mrr']:.2f}** vs **{m['random_mrr']:.2f}** random baseline  \n"
             "<small>Mean reciprocal rank: higher is better (1 = always first). The baseline is the MRR "
             "expected if TAPIR's final candidates were shuffled.</small>"
         )
-        return mo.hstack([hero, secondary], widths=[1, 2.2], align="center", gap=2)
 
     return case_result, case_view, global_view
 
@@ -191,7 +204,7 @@ def _(chem_review, mo, plt):
     DROP_LABELS = {"not_conserved": "not balanced", "already_in_network": "already in the network",
                    "unknown_species": "unknown species", "no_target": "do not make the target"}
     REVIEW_LABELS = {"implausible": "Rejected", "plausible": "Plausible", "uncertain": "Uncertain"}
-    LLM_COLOR = "#7b5ea7"
+    LLM_COLOR = "#6f5bd3"
     SUP = str.maketrans("-0123456789", "⁻⁰¹²³⁴⁵⁶⁷⁸⁹")
     REVIEW_BY_REACTION = {r["reaction"]: r for r in (chem_review or {}).get("reactions") or []}
 
@@ -606,10 +619,11 @@ def _(DISCLAIMER, chem_review_error, chemical_review_section, detail_view, disco
             mo.stat(str(_d.get("n_simulated", "–")), label="Simulated", bordered=True,
                     caption="largest estimated flux"),
             mo.stat(str(_d.get("n_reachable", "–")), label="Physically reachable", bordered=True,
-                    caption="at or below the capture limit"),
+                    caption="no single reaction closes the gap: see the upstream diagnosis"
+                    if _d.get("n_reachable") == 0 else "at or below the capture limit"),
         ], widths="equal", gap=0.5)
         _llm_only = next((h for h in _hyps if source_key(h) == "llm"), None)
-        _parts = [_intro, mo.hstack(_stats, widths="equal", gap=0.5), _banner, _search, _funnel,
+        _parts = [_intro, mo.hstack(_stats, widths="equal", gap=0.5), _search, _funnel,
                   mo.md(f"**Top 5 direct hypotheses** for {_sp}"), hypotheses_table(_d, _hyps[:5]),
                   table_caption(_d), verdict(_d)]
         if _llm_only is not None:
@@ -785,7 +799,7 @@ def _(MOTTO, bench_error, bench_summary, discovery, feasibility, lit_status, mo,
             parts.append(mo.md("\n".join(bullets)))
         parts.append(mo.callout(mo.md("**The LLM expands the hypothesis space; it does not replace chemistry or "
                                       "physics.**"), kind="info"))
-        parts.append(mo.md(f"<div style='font-weight:600;letter-spacing:0.02em;color:#7b5ea7'>{MOTTO}</div>"))
+        parts.append(mo.md(f"<div style='font-weight:600;letter-spacing:0.02em;color:#6f5bd3'>{MOTTO}</div>"))
         return mo.vstack(parts, gap=0.6)
 
     _b = (bench_summary or {}).get("benchmark_b") or {}
@@ -832,7 +846,7 @@ def _(atlas, mo):
 @app.cell
 def _(atlas, atlas_error, atlas_picker, mo, plt, rxn, sci):
     DIAGNOSIS_LABELS = {"supply_limited": "Supply-limited", "rate_limited": "Rate-limited", "other": "Other"}
-    DIAGNOSIS_COLORS = {"supply_limited": "#2a78d6", "rate_limited": "#eb6834", "other": "#777570"}
+    DIAGNOSIS_COLORS = {"supply_limited": "#2f6fed", "rate_limited": "#d8694f", "other": "#7d8792"}
 
     def _ratio(v):
         return f"{v:.2g}" if v >= 1e-3 else f"{v:.1e}"
@@ -939,7 +953,8 @@ def _(atlas, atlas_error, atlas_picker, mo, plt, rxn, sci):
                 mo.stat(str(len(_rows)), label="Underproduced species", bordered=True),
                 mo.stat(f"{_supply}/{len(_rows)}", label="Supply-limited", bordered=True),
                 mo.stat(str(_clean), label="Reachable unflagged candidates", bordered=True,
-                        caption="across all atlas species"),
+                        caption="no single missing reaction explains any deficit" if _clean == 0
+                        else "across all atlas species"),
             ], widths="equal", gap=0.5),
             _atlas_plot(atlas),
             _atlas_table(atlas),
@@ -955,14 +970,86 @@ def _(atlas, atlas_error, atlas_picker, mo, plt, rxn, sci):
 
 
 @app.cell
-def _(atlas_view, discovery_view, generator_view, mo, validation_view):
-    HEADER = mo.md(
-        "<span style='font-size:1.6rem;font-weight:700;letter-spacing:0.05em'>TAPIR</span> &nbsp; "
-        "<span style='opacity:0.75'>Tracking Absent Pathways in Interstellar Reactions</span>  \n"
-        "<small style='opacity:0.6'>Finding missing chemistry in interstellar reaction networks.</small>"
+def _(APP_DIR, IN_BROWSER, RAW_URL, atlas, atlas_view, discovery, discovery_view, generator_view, mo, validation,
+      validation_view):
+    import base64
+
+    ACCENT, VIOLET = "#2f6fed", "#6f5bd3"
+    SUB = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
+
+    _metrics = (validation or {}).get("metrics") or {}
+    _hits = _metrics.get("hits") or {}
+    _mrr, _random_mrr = _metrics.get("mrr"), _metrics.get("random_mrr")
+
+    _d = discovery or {}
+    _sp = _d.get("species") or "the target"
+    _deficit = _d["X_obs"] / _d["X_base"] if _d.get("X_obs") and _d.get("X_base") else None
+    _bottleneck = _d.get("bottleneck") or {}
+    _limiting = min((_bottleneck.get("species") or {}).items(), key=lambda kv: kv[1].get("ratio", 1),
+                    default=(None, None))[0]
+
+    _atlas_rows = (atlas or {}).get("species") or []
+    _n_supply = sum(s.get("supply", {}).get("diagnosis") == "supply_limited" for s in _atlas_rows)
+
+    _logo_path = APP_DIR / "assets" / "tapir-mark.png"
+    try:
+        _logo_src = "data:image/png;base64," + base64.b64encode(_logo_path.read_bytes()).decode()
+    except OSError:
+        _logo_src = f"{RAW_URL}/assets/tapir-mark.png" if IN_BROWSER else None
+    _logo = (f"<img src='{_logo_src}' alt='TAPIR logo' style='width:108px;height:108px;object-fit:contain;flex:none'>"
+             if _logo_src else "")
+
+    # Colors inherit from the marimo theme so the header reads in light and dark mode; only the brand accents are fixed.
+    HEADER = mo.Html(f"""
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:1rem 2rem;flex-wrap:wrap;
+                padding:0.6rem 1.4rem 0.6rem 0.8rem;border:1px solid rgba(127,127,127,.22);border-radius:18px;
+                background:linear-gradient(120deg,rgba(47,111,237,.07),rgba(111,91,211,.07) 60%,transparent)">
+      <div style="display:flex;align-items:center;gap:1rem">
+        {_logo}
+        <div>
+          <div style="font-family:Montserrat,Poppins,'Segoe UI',system-ui,sans-serif;font-size:2.4rem;
+                      font-weight:800;letter-spacing:.06em;line-height:1">TAPIR</div>
+          <div style="font-size:1rem;opacity:.75;margin-top:.3rem">
+            Tracking Absent Pathways in Interstellar Reactions</div>
+          <div style="height:3px;width:100%;margin-top:.45rem;border-radius:2px;
+                      background:linear-gradient(90deg,{ACCENT},{VIOLET})"></div>
+        </div>
+      </div>
+      <div style="font-size:0.95rem;font-weight:700;letter-spacing:.03em;color:{VIOLET};line-height:1.6">
+        LLM proposes.<br>Code verifies.<br>Physics decides.</div>
+    </div>
+    """)
+
+    _mrr_caption = (f"MRR {_mrr:.2f} vs {_random_mrr:.2f} if shuffled"
+                    if isinstance(_mrr, (int, float)) and isinstance(_random_mrr, (int, float)) else None)
+    if _d.get("n_reachable") == 0 and _bottleneck.get("supply_limited"):
+        _discovery_stat = mo.stat(
+            "Supply-limited", bordered=True,
+            label=f"Why {_sp.translate(SUB)} is {_deficit:.0f}× too low" if _deficit else f"Diagnosis for {_sp}",
+            caption=f"none of {_d.get('n_generated', 0)} hypotheses closes it"
+                    + (f"; {_limiting.translate(SUB)} runs out" if _limiting else ""))
+    else:
+        _discovery_stat = mo.stat(str(_d.get("n_reachable", "–")), bordered=True,
+                                  label=f"Plausible hypotheses for {_sp.translate(SUB)}",
+                                  caption=f"of {_d.get('n_generated', 0)} generated")
+    SUMMARY = mo.hstack([
+        mo.stat(f"{_hits.get('1', _hits.get(1, 0))} / {_metrics.get('n_cases') or 0}", bordered=True,
+                label="Hidden reactions recovered at #1", caption=_mrr_caption),
+        _discovery_stat,
+        mo.stat(f"{_n_supply} / {len(_atlas_rows)}", bordered=True, label="Atlas deficits that are supply-limited",
+                caption="TMC-1 species underproduced by >3×"),
+    ], widths="equal", gap=0.6)
+
+    CONTEXT = mo.md(
+        f"<div style='border-left:3px solid {VIOLET};padding:0.3rem 0.8rem;font-size:0.92rem;max-width:62rem'>"
+        "<b>Ranked hypotheses, not confirmed reactions.</b> <span style='opacity:.75'>"
+        "TAPIR generates candidates, tests them in the network, compares the required rate with physical limits, "
+        "and checks the literature before a scientist decides what to pursue.</span></div>"
     )
-    mo.vstack([HEADER, mo.ui.tabs({"Validation": validation_view, "Discovery": discovery_view,
-                                   "Atlas": atlas_view, "Generator": generator_view})], gap=0.5)
+
+    TABS = mo.ui.tabs({"Validation": validation_view, "Discovery": discovery_view,
+                       "Atlas": atlas_view, "Generator": generator_view})
+    mo.vstack([HEADER, SUMMARY, CONTEXT, TABS], gap=0.9)
     return
 
 

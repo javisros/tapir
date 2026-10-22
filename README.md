@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/tapir-logo.png" alt="TAPIR — Tracking Absent Pathways in Interstellar Reactions" width="720">
+</p>
+
 # TAPIR — Tracking Absent Pathways in Interstellar Reactions
 
 TAPIR proposes reactions that may be missing from the KIDA astrochemistry network, simulates each one in
@@ -5,8 +9,7 @@ a dark-cloud model and ranks them by how well they explain the abundances observ
 
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
-<!-- TODO: add the molab badge once the app is published:
-[![Open in molab](https://molab.marimo.io/molab-shield.svg)](MOLAB_URL) -->
+[![Open in molab](https://marimo.io/molab-shield.svg)](https://molab.marimo.io/github/javisros/tapir/blob/main/app/tapir_app.py/wasm)
 
 > **Ranked hypotheses, not confirmed reactions.**
 
@@ -57,6 +60,22 @@ reports what it cannot explain.
 The Marimo app (`app/tapir_app.py`) shows the validation cases, the CH₂CCH hypotheses, their chemical
 review and robustness check, the TMC-1 discrepancy atlas, and the analogy-vs-LLM comparison. It reads
 precomputed data only and needs neither the networks nor the `tapir` package.
+[Open it in molab](https://molab.marimo.io/github/javisros/tapir/blob/main/app/tapir_app.py/wasm) to use
+it in the browser without installing anything.
+
+### LLM setup
+
+| | |
+|---|---|
+| Model | `gpt-oss-120b` (OpenAI open-weight), via a LiteLLM proxy (default `groq/openai/gpt-oss-120b`) |
+| Used for | proposing candidates (LLM generator) and classifying what Bond returns; never for ranking, rates or physics |
+| Reasoning effort | `medium` in the CH₂CCH discovery run, `low` in the analogy-vs-LLM benchmark |
+| Output | strict JSON schema validated by code; an invalid answer is retried once |
+| Cost of the stored CH₂CCH run | 1 call, ~8.8k tokens |
+
+Any OpenAI-compatible endpoint works: set `LITELLM_BASE_URL`, `LITELLM_API_KEY` and `TAPIR_LLM_MODEL`
+in `.env`. Answers are cached in `results/llm_cache/`, which is not committed, so a new run, or one
+with another model, can produce different LLM candidates.
 
 ## Results
 
@@ -278,4 +297,3 @@ TAPIR uses the following data and publications:
 ## License
 
 Code under the MIT License ([LICENSE](LICENSE)). The KIDA network files keep their own terms of use.
-
