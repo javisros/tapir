@@ -75,14 +75,14 @@ REACTIVE_EVEN_ELECTRON = {
     "O": "triplet ground state (3P)",
     "S": "triplet ground state (3P)",
     "Si": "triplet ground state (3P)",
-    "O2": "triplet ground state (3Sigma-)",                                   # DUDOSO: triplet, but slow with closed-shell partners
+    "O2": "triplet ground state (3Sigma-)",                                   # UNCERTAIN: triplet, but slow with closed-shell partners
     "CH2": "triplet ground state (3B1), methylene",
     "NH": "triplet ground state (3Sigma-)",
-    "SO": "triplet ground state (3Sigma-), isovalent with O2",                # DUDOSO: same caveat as O2
-    "S2": "triplet ground state (3Sigma-), isovalent with O2",                # DUDOSO: same caveat as O2
+    "SO": "triplet ground state (3Sigma-), isovalent with O2",                # UNCERTAIN: same caveat as O2
+    "S2": "triplet ground state (3Sigma-), isovalent with O2",                # UNCERTAIN: same caveat as O2
     "CCO": "triplet ground state (3Sigma-), ketenylidene",
     "C2": "reactive singlet (low-lying triplet), barrierless with C2H2 in KIDA",
-    "C4": "triplet ground state (3Sigma-) of the linear chain",              # DUDOSO: rhombic singlet nearly degenerate
+    "C4": "triplet ground state (3Sigma-) of the linear chain",              # UNCERTAIN: rhombic singlet nearly degenerate
     "NCN": "triplet ground state (3Sigma-); not a kida.uva.2024 species",
     "PH": "triplet ground state (3Sigma-), isovalent with NH",
     "HCCN": "triplet ground state, cyanocarbene; not a kida.uva.2024 species",
@@ -92,8 +92,8 @@ REACTIVE_EVEN_ELECTRON = {
     "SiC": "triplet ground state (3Pi)",
     "C6": "triplet ground state (3Sigma-) of the linear chain, like C4",
     "C8": "triplet ground state (3Sigma-) of the linear chain, like C4",
-    "C10": "triplet ground state (3Sigma-) of the linear chain, like C4",    # DUDOSO: the C10 ring (singlet) is lower
-    "t-C3H2": "triplet propargylene HCCCH",                                   # DUDOSO: assumes KIDA's t- means triplet
+    "C10": "triplet ground state (3Sigma-) of the linear chain, like C4",    # UNCERTAIN: the C10 ring (singlet) is lower
+    "t-C3H2": "triplet propargylene HCCCH",                                   # UNCERTAIN: assumes KIDA's t- means triplet
 }
 
 # Upper limit of a rate coefficient by class (cm3 s-1 at 10 K): what is physically reachable. Editable.

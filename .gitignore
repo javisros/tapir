@@ -13,5 +13,17 @@ venv/
 .DS_Store
 .env
 .env.*
+!.env.example
 app/__marimo__/
 results/llm_cache/
+
+# Internal working documents (not part of the public repository)
+README_HANDOFF*.md
+README_IGNACIO.md
+*borrador*
+*draft*
+/*.pdf
+tabla.pdf
+*.tmp
+*.bak
+*~

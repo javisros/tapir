@@ -12,5 +12,5 @@ network papers when using them.
 Formats are described in `kida.uva.2024/kida.uva.2024_readme.txt`. Species files: name, charge and the
 number of atoms of H, He, C, N, O, Si, S, Fe, Na, Mg, Cl, P, F (order checked in `tests/test_chem.py`).
 The 14 species of the 2014 network missing from the 2024 species file are listed in
-`detective/chem.py` (`MISSING_IN_2024`). Every row of both reaction files conserves atoms and charge.
+`tapir/chem.py` (`MISSING_IN_2024`). Every row of both reaction files conserves atoms and charge.
 The `.bib` files hold the references of the individual rate coefficients.
